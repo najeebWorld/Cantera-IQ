@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight, CircleAlert, Database, LoaderCircle, RefreshCw, UserRound } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, CircleAlert, Database, FileText, LoaderCircle, RefreshCw, UserRound } from "lucide-react";
 import { EVIDENCE, METRICS, type Language, type Metric, type Evidence } from "../../labels";
 import PlayerRadar from "./radar";
 import PlayerComparisons from "./comparisons";
@@ -12,7 +12,7 @@ type PlayerMetric = {
   metric: Metric; total: number; per90: number | null; percentile: number | null;
   peer_count: number; evidence_status: Evidence; definition: string; evidence_explanation: string;
 };
-type Profile = {
+export type Profile = {
   language: Language; radar_available: boolean;
   player: { player_id: number; name: string; display_name: string; age: number | null; birth_date: string | null;
     team: string; shirt_number: number | null; position: string | null; minutes: number; appearances: number;
@@ -104,6 +104,7 @@ export default function PlayerProfile({ playerId, initialLanguage, searchQuery }
     </header>
     <main className="profile-main">
       <Link className="back-link" href={backHref}><ArrowLeft size={16} />{text.back}</Link>
+      {status === "ok" && <Link className="back-link" style={{ marginLeft: 24 }} href={`/players/${playerId}/report?${new URLSearchParams({ lang: language, ...(searchQuery ? { q: searchQuery } : {}) })}`}><FileText size={16} />{language === "en" ? "Player report" : "Informe del jugador"}</Link>}
       {status === "loading" && <div className="loading-state" role="status"><LoaderCircle className="spin" size={24} />{text.loading}...</div>}
       {(status === "not_found" || status === "error") && <section className="message" role="alert"><CircleAlert size={26} /><div>
         <h1>{status === "not_found" ? text.notFound : text.unavailable}</h1><p>{status === "not_found" ? text.notFoundDetail : text.unavailableDetail}</p>
