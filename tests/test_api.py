@@ -1,3 +1,5 @@
+import os
+
 import duckdb
 import pytest
 from fastapi.testclient import TestClient
@@ -67,3 +69,36 @@ def test_search_asks_for_clarification_in_requested_language(client):
 ])
 def test_search_rejects_invalid_payloads(client, payload):
     assert client.post("/api/search", json=payload).status_code == 422
+
+
+def test_profile_returns_bilingual_metrics_and_no_minutes_evidence(client):
+    with duckdb.connect(os.environ["CANTERA_DB"]) as database:
+        database.execute("INSERT INTO players (player_id, name) VALUES (1, 'Fixture Player')")
+    english_response = client.get("/api/players/1")
+    assert english_response.status_code == 200
+    english = english_response.json()
+    spanish = client.get("/api/players/1?lang=es").json()
+    assert english["player"]["display_name"] == "Fixture Player"
+    assert english["radar_available"] is False
+    assert english["player"]["age"] is None
+    assert english["player"]["minutes"] == 0
+    assert len(english["player"]["metrics"]) == 6
+    for first, second in zip(english["player"]["metrics"], spanish["player"]["metrics"]):
+        assert first["per90"] is None and first["percentile"] is None
+        assert first["evidence_status"] == "no_minutes"
+        assert first["definition"] != second["definition"]
+        assert first["evidence_explanation"] != second["evidence_explanation"]
+    assert english["methodology"]["settings"]["min_peers"] == 5
+
+
+@pytest.mark.parametrize("path,status", [("999", 404), ("0", 422), ("-1", 422),
+                                        ("abc", 422), ("999999999999999999999999", 422),
+                                        ("1?lang=fr", 422), ("1;DROP%20TABLE%20players", 422)])
+def test_profile_errors_are_explicit(client, path, status):
+    assert client.get(f"/api/players/{path}").status_code == status
+
+
+def test_profile_missing_database_returns_503(tmp_path, monkeypatch):
+    monkeypatch.setenv("CANTERA_DB", str(tmp_path / "missing.duckdb"))
+    with TestClient(app) as client:
+        assert client.get("/api/players/1").status_code == 503

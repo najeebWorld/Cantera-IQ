@@ -3,13 +3,13 @@ from pathlib import Path
 from typing import Literal
 
 import duckdb
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Path as ApiPath, Query
 from pydantic import BaseModel, ConfigDict, Field
 
-from cantera.search import search
-from cantera.store import DEFAULT_DB, dataset_summary, player_table, records
+from cantera.search import explain_evidence, search
+from cantera.store import DEFAULT_DB, dataset_summary, player_profile, player_table, records
 
-app = FastAPI(title="Cantera IQ", version="0.2.0", description="Database-grounded player metrics and bilingual search")
+app = FastAPI(title="Cantera IQ", version="0.3.0", description="Database-grounded search and player profiles")
 
 METRIC_DEFINITIONS = {
     "shots": {
@@ -77,6 +77,10 @@ def search_players(request: SearchRequest):
 def methodology(lang: Literal["en", "es"] = "en"):
     with connection() as database:
         settings = records(database, "SELECT * FROM settings")[0]
+    return methodology_details(settings, lang)
+
+
+def methodology_details(settings: dict, lang: Literal["en", "es"]) -> dict:
     return {
         "language": lang, "settings": settings,
         "metrics": {name: translations[lang] for name, translations in METRIC_DEFINITIONS.items()},
@@ -88,4 +92,23 @@ def methodology(lang: Literal["en", "es"] = "en"):
             "es": "Muestra historica de un torneo, no datos de cantera ni edades actuales. Las etiquetas de evidencia son reglas practicas, no intervalos de confianza. Sin ranking de talento ni recomendaciones de desarrollo.",
         }[lang],
         "sources": {"events": "StatsBomb Open Data", "birth_dates": "FIFA World Cup 2022 official squad list"},
+    }
+
+
+@app.get("/api/players/{player_id}")
+def profile(player_id: int = ApiPath(ge=1, le=9223372036854775807), lang: Literal["en", "es"] = "en"):
+    with connection() as database:
+        player = player_profile(database, player_id)
+        if player is None:
+            raise HTTPException(404, detail="Player not found" if lang == "en" else "Jugador no encontrado")
+        dataset = dataset_summary(database)
+        settings = records(database, "SELECT * FROM settings")[0]
+        scope = records(database, "SELECT DISTINCT competition, season FROM matches ORDER BY competition, season")
+    for metric in player["metrics"]:
+        metric["definition"] = METRIC_DEFINITIONS[metric["metric"]][lang]
+        metric["evidence_explanation"] = explain_evidence({**player, **metric}, settings, lang)
+    return {
+        "language": lang, "player": player, "dataset": dataset, "scope": scope,
+        "radar_available": bool(player["metrics"]) and all(metric["percentile"] is not None for metric in player["metrics"]),
+        "methodology": methodology_details(settings, lang),
     }

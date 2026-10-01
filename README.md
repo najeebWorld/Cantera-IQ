@@ -1,6 +1,6 @@
 # Cantera IQ
 
-Working stages 1-2 prototype: StatsBomb Open Data -> replaceable provider -> DuckDB -> read-only FastAPI -> English/Spanish Next.js player search. Stage 2 uses a constrained local grammar, not an LLM or unrestricted language understanding.
+Working stages 1-3 prototype: StatsBomb Open Data -> replaceable provider -> DuckDB -> read-only FastAPI -> English/Spanish Next.js player search and player profiles. Stage 2 uses a constrained local grammar, not an LLM or unrestricted language understanding.
 
 ## Run
 
@@ -30,6 +30,7 @@ npm run dev -- --hostname 127.0.0.1 --port 3002
 Open http://127.0.0.1:3002. The Next.js server proxies API requests to port 8001; optionally set `CANTERA_API_URL` before starting/building the frontend. No browser CORS configuration or API key is needed. Fonts and the small pitch photograph are served locally.
 
 - `GET /api/players?max_age=23&min_minutes=180&limit=10`: player metadata, raw totals, per-90 rates, percentiles, peer counts and evidence labels.
+- `GET /api/players/{player_id}?lang=en` or `lang=es`: one player's metadata, all six metrics, definitions, evidence, cohort context, dataset scope and methodology; unknown IDs return 404.
 - `GET /api/coverage`: dataset completeness and analytical thresholds.
 - `GET /api/methodology?lang=en` or `lang=es`: metric definitions in English or Spanish.
 - `POST /api/search`: JSON `{ "query": "Find wingers aged 23 or younger sorted by successful dribbles per 90", "lang": "en" }`. Returns interpretation, dataset context, results and evidence, or `needs_clarification` without executing a player search.
@@ -48,9 +49,17 @@ The import uses all 64 matches of the men's World Cup 2022, not the entire Stats
 
 StatsBomb Open Data does not provide birth dates. The separate FIFA adapter supplies them from the official tournament squad PDF, matched by tournament, national team and shirt number. Source names and source hashes remain in DuckDB for audit. No dates are inferred by an LLM.
 
+## Player Profiles
+
+Click a player name in the search results to open `/players/{player_id}`. The profile contains historical identity and playing time, a six-axis percentile radar, comparison-group details, raw totals and per90 rates, expandable metric calculations, and source links. The return link preserves the submitted search and interface language. Direct profile URLs also work, including players outside the search's age/minute filters.
+
+The radar uses Chart.js through react-chartjs-2, with a fixed 0-100 scale and the database's existing percentiles. It is shown only when all six percentiles are available. Missing values remain `--`, not zero; genuine zero values remain visible. Low minutes, too few peers, missing birth dates and no appearances retain their evidence labels. Goalkeepers get a warning that these are general metrics, not a goalkeeper evaluation. Cohorts do not change when opening a profile or switching language.
+
+Implementation: `cantera.store.player_profile` reads `player_summary` and `player_metrics`; `cantera.api.profile` adds localized definitions and evidence. The frontend route lives in `web/app/players/[playerId]/`. No schema changes, new analytics model or generated player statistics are involved. Displayed arithmetic is rounded; API values retain database precision.
+
 ## Boundaries
 
-Stages 1-2 only. Search supports a documented English/Spanish grammar for position, age, national team, minimum minutes, one metric, numeric thresholds and descending order. Unsupported language, qualitative potential, tracking speed and conflicting requests require clarification. No composite talent score, player page/radar, similarity, development trajectory, club weighting or recommendations. kloppy is used for event parsing; socceraction and mplsoccer are not needed yet and are not installed. Stage 3 requires separate approval.
+Stages 1-3 only. Search supports a documented English/Spanish grammar for position, age, national team, minimum minutes, one metric, numeric thresholds and descending order. Unsupported language, qualitative potential, tracking speed and conflicting requests require clarification. No composite talent score, similarity, development trajectory, club weighting or recommendations. kloppy is used for event parsing; socceraction is not needed yet. The interactive browser radar uses Chart.js; mplsoccer is not installed. Stage 4 requires separate approval.
 
 Only one competition-season per database is supported. Provider replacement uses the normalized `MatchBundle`, `MatchProvider` and `BirthDateProvider` contracts. The FIFA 2022 identity adapter must not be reused for another tournament. Tactical and minute interpretation is owned by the StatsBomb adapter; analytics SQL does not parse provider JSON.
 
@@ -58,7 +67,7 @@ Only one competition-season per database is supported. Provider replacement uses
 
 Tests cover stoppage time, half-time substitutions, extra time, temporary exits, red cards, tactical changes, shootout exclusion, birth-date boundaries, tied percentiles, cohort isolation, insufficient samples, API validation, atomic import failure and repeat imports. When the real database exists, tests also reconcile every match's shots and npxG against cached raw data and check interval overlap and team-minute bounds.
 
-92 Python tests pass, including strict grammar parsing, parameterized search, unchanged cohorts and API validation. Four Playwright cases cover actual database search, calculations, English/Spanish, clarification, empty results, unavailable API/retry, image availability and desktop/mobile page overflow. Screenshots are saved under `web/test-results/`.
+107 Python tests pass, including strict grammar parsing, parameterized search, unchanged cohorts, profile/view equality, null versus zero values and API validation. Ten Playwright cases cover actual database search, profiles, calculations, English/Spanish, clarification, empty results, unavailable API/retry, unknown players, return-to-search context, image availability and desktop/mobile page overflow. Profile tests compare displayed metrics with the API and verify nonblank radar pixels; missing percentiles must render no canvas. Desktop/mobile screenshots were visually inspected and are saved under `web/test-results/`. Lint and production build pass.
 
 With both servers and the imported dataset available:
 
