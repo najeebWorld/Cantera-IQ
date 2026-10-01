@@ -1,4 +1,55 @@
-# Stage 4 Data-Source Research
+# Data-Source Research
+
+## Stage 5: Multiple Clubs And Squad Statistics
+
+Research checked 2026-10-01. User confirmed multiple clubs and requested available-source research. No provider account, purchase or contact was performed. Research itself did not import a database; the later approved implementation imported the complete selected season. This is a bounded shortlist, not an exhaustive market survey. Stage 4 findings below remain historical evidence.
+
+Subsequent decision: user selected the historical demo and approved the [multi-club implementation contract](CLUB-PROFILE.md). Complete La Liga 2015/16 import and verification now pass: 380 matches, 20 clubs, 601 players, 761 checksummed sources and six-metric reconciliation. Historical age-cohort scores remain withheld. Paid alternatives and the original research review below are reference only, not pending implementation gates.
+
+### Recommendation And Alternatives
+
+Recommend StatsBomb La Liga 2015/2016 for a no-provider-fee historical multi-club prototype, subject to user acceptance of historical data and missing-age limitations. The manifest contains all 20 clubs with 38 fixtures each. Premier League and Serie A 2015/2016 are equally sized alternatives. This does not satisfy current squads, recent youth coverage or continuous development requirements.
+
+For current club-season squads and statistical profiles, evaluate Sportmonks with a licensed sample for the selected competition before implementation. Its public documentation explicitly supports team-plus-season squad retrieval. If preserving event-level StatsBomb definitions is essential, request a Hudl Statsbomb commercial sample instead. Do not purchase or register without authorization.
+
+| Source | Verified offering | Cost/access evidence | Limitation and suitability |
+|---|---|---|---|
+| [StatsBomb Open Data](https://github.com/statsbomb/open-data) | Pinned JSON match/lineup/event files; fixture counts audited below | No API key or provider fee for inspected downloads; research terms require attribution/logo for shared analysis | Best fit for existing event calculations, but historical coverage and missing DOB; match rosters are not proof of complete registered squads; commercial rights require license review |
+| [Sportmonks](https://www.sportmonks.com/football-api/plans-pricing/) | Advertises player/season statistics, squads, lineups and xG; [squad documentation](https://docs.sportmonks.com/v3/endpoints-and-entities/endpoints/team-squads.md) distinguishes current domestic squad from team-plus-season history | Starter advertised at EUR29/month for 5 leagues, 2,000 calls per entity/hour, 14-day trial; homepage also advertises a two-league free plan | xG and historical data also appear as add-ons despite all-features marketing; exact entitlement/total price must be confirmed. Historical squad docs warn incomplete coverage. No authenticated response or exact six-metric equivalence verified |
+| [football-data.org](https://www.football-data.org/coverage) | Free tier includes major leagues; [team documentation](https://docs.football-data.org/general/v4/team.html) shows squad, positions and DOB plus team match queries | Token-based access; free competition list verified, exact paid entitlements not audited | Useful basic identity/squad candidate, but inspected docs do not establish our six detailed player metrics or historic squad guarantees; not recommended as sole analytics source |
+| [Hudl Statsbomb](https://www.hudl.com/products/statsbomb) | Advertises event data across 300+ competitions, API/JSON delivery and custom academy collection | Sales contact required; no public price verified | Strong semantic fit; desired leagues/seasons, DOB, sample quality and product-use rights require confirmation |
+| [API-Football](https://www.api-football.com/documentation-v3) | Not verified in this session | Documentation, homepage, pricing and official API-Sports documentation fetches returned HTTP403 | Remains an unverified candidate; no inferred prices, free quota or metric coverage |
+
+Provider marketing is not a guarantee of a particular club-season's data. Sportmonks pricing also lists xG/Pressure Index from EUR24/month at the displayed promotional price (EUR29 struck through) and historical data from EUR29 one-time; do not sum these into a promised package price or assume the promotion applies. No commercial redistribution, logo/image reuse or long-term storage rights were established for paid providers; verify terms and selected-plan rights before public deployment. Exclude medical, tracking, market-value and transfer feeds even if bundled. Season-specific membership is still needed to attribute observed player statistics correctly.
+
+### Direct StatsBomb Verification
+
+Fetched and parsed schedules at existing revision `4b73468fc5b0f1950f9f66fada70ad3a4f9327cb`, counting unique match IDs and both home/away team appearances. Paths below are relative to the pinned [matches directory](https://github.com/statsbomb/open-data/tree/4b73468fc5b0f1950f9f66fada70ad3a4f9327cb/data/matches).
+
+| Dataset | Path | Unique matches | Clubs | Fixtures per club | Schedule SHA256 |
+|---|---|---:|---:|---|---|
+| La Liga 2015/16 | 11/27.json | 380 | 20 | 38 | 4e2074c633559f3b88e9593a752d8d15d9d9ba0d6c8a25316a68ec6526b4d14b |
+| Premier League 2015/16 | 2/27.json | 380 | 20 | 38 | e07d6d360b30e0cd17f9aeea0db1502d2a5666d298f1b44b83a2d2f21ba3d21b |
+| Serie A 2015/16 | 12/27.json | 380 | 20 | 38 | 613cd3cc70699ba613cb1b3c27b4c8a01b0b5fa28415e09c928d020208905c7a |
+| Bundesliga 2023/24 | 9/281.json | 34 | 18 | 2-34 | 13dff90f126d9f73da410ae3292b2773744657d3ba968a2b7a9c02135033581c |
+
+Bundesliga contains 34 Leverkusen matches but only two matches per opponent, so it is unsuitable as complete season data for multiple clubs. Full fixture counts for the other leagues are candidates for complete coverage, not proof of event-file quality or reconciliation against an external official schedule.
+
+La Liga event/lineup probes: match 3825739 (2016-01-17) had 3,947 unique event IDs and 26 non-penalty shots; match 266557 (2016-04-17) had 3,630 unique IDs and 29 non-penalty shots. Both had two Starting XI events, numeric supplied xG for every inspected non-penalty shot and no birth/DOB-named fields on inspected roster players. Event SHA256 respectively: `f1e54bd840b5cfbb585ce3075288c1538e70d51451effe8f6341d33318678ea2` and `35ace6f5df23a00564d29f234fbfc97b656b8014ab3d24f007aa4df2c02edd07`. These are schema probes only, not a full import, six-metric reconciliation or minutes validation.
+
+### Focused Review And Next Gate
+
+| Challenge | Required response | Verdict |
+|---|---|---|
+| Can historic data be presented as today's squad? | Explicit season and match-roster coverage everywhere; user chooses historical versus current-data route | Awaiting source-route decision |
+| Can missing DOB still produce age percentiles and club fit? | No: verify representative DOB coverage or withhold age-cohort percentiles/fit; do not silently switch cohort definitions | Constraint; unresolved data coverage |
+| Can existing player-only aggregation handle different clubs in one season? | No: revise membership and aggregation keys to player/club/competition/season, with explicit player identity and separate stored club weights | Architecture gate required |
+| Are paid-provider metrics interchangeable with StatsBomb? | No: verify a sample and map definitions, minute denominators, missing/zero semantics and xG versions before computing shared scores | Unverified until sample |
+| Does research authorize a subscription or production use? | No purchase, signup or deployment; verify rights and user approval first | Boundary retained |
+
+After source selection, revise the multi-club design and test requirements before implementation. Keep World Cup stores unchanged. Club-only filtering must not recompute the reference population, and a player changing clubs must not have one club's statistics attributed to the other. Missing DOB may allow totals/per90 while withholding the existing age-dependent preference score; explicitly agree that reduced scope or acquire suitable DOB evidence. Stage 6 remains gated.
+
+## Stage 4 Research Record
 
 Last verified: 2026-10-01. Research complete; the user subsequently approved WC2018/WC2022 snapshots. Implemented and verified in [the comparison contract](COMPARISON.md). Research tables below retain their original audit scope.
 
@@ -110,4 +161,4 @@ No tracking/physical/medical/market-value/transfer data is required or authorize
 
 Before accepting a migration: verify exact selected match sets and unique IDs; reconcile all six metric contributions and playing intervals; verify identities, DOBs and per-period age/position rules; count paired players meeting minute thresholds; test cohort isolation, alias conflicts, transfers, no-history cases and null/zero distinctions; prove the existing WC2022 results remain unchanged; run bilingual desktop/mobile regression and inspect historical labels/coverage. No projected developmental paths may be generated from absent data.
 
-Decision recorded: WC2018/WC2022 historical-snapshot prototype approved after research. It is implemented with 96 players meeting >=180 minutes in each period, unchanged 2022 database hash, 124 passing Python tests and 14 passing desktop/mobile browser cases. The generalized migration/transfer tests above do not apply to the isolated tournament design; continuous club/academy seasons require a future source and architecture decision. Stage 4 awaits user review. Stages 5-6 are not authorized.
+Decision recorded: WC2018/WC2022 historical-snapshot prototype approved after research. It is implemented with 96 players meeting >=180 minutes in each period, unchanged 2022 database hash, 124 passing Python tests and 14 passing desktop/mobile browser cases. The generalized migration/transfer tests above do not apply to the isolated tournament design; continuous club/academy seasons require a future source and architecture decision. User subsequently approved progression to Stage 5; see the current research above. Stage 6 is not authorized.

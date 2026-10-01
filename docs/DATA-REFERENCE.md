@@ -20,6 +20,10 @@ Full downloaded event and lineup JSON is preserved in the source cache. The even
 
 Stage 4 retains this schema in two physically isolated databases: data/cantera.duckdb (WC2022, default search/profile) and data/cantera-2018.duckdb (WC2018, historical API only). Every view above is local to its own competition-season. No aggregated view unions periods. The historical import has all 64 matches, 227825 raw events, 69798 metric events, 736 roster identities and 604 active players; all historical stored birth dates remain null. Full details: [comparison contract](COMPARISON.md).
 
+Stage 5 uses a separate `club_schema.sql` and `data/cantera-clubs-2015-16.duckdb`: 380 La Liga 2015/16 matches, 20 clubs, 601 players and 761 sources. Stable `players` have no singleton team/shirt fields; `rosters` associates match/player/team/shirt, and stints/events reference this membership. `club_players` and `club_metrics` group by club AND player. Birth dates, ages, percentiles and peer counts remain NULL. Sources include all match-event and lineup files plus the season schedule. Independent source reconciliation covers every club/player numerator. Full contract: [club profiles](CLUB-PROFILE.md).
+
+Preferences are not analytical observations. `data/club-profiles.json` stores schema version 1 and club-ID-keyed weights/revisions; writes are atomic under one process lock and reject stale revisions. The WC2022 preference index uses saved positive weights and existing percentiles only, with no change to either World Cup database or the equal-weight Stage 4 distance.
+
 ## Identity And Age
 
 Age is completed years on the earliest match date in the imported competition-season. In the demo this is 2022-11-20, not today's age or the age on each appearance. A player who turns 24 during the tournament remains in the opening-day age cohort.
@@ -33,6 +37,8 @@ Historical display matches the same StatsBomb ID and normalized full name, rejec
 Period-relative timestamps are converted to continuous playing seconds by summing each previous period's Half End timestamp. Both teams' duplicate Half End events are merged using the maximum. Intervals start at Starting XI or Substitution/Player On and end at Substitution, Player Off, dismissal or the last period end. Tactical Shift changes the position group without adding minutes. Temporary off/on absences are excluded when recorded. Missing period ends fail the import.
 
 Only periods 1-4 count. Stoppage time and extra time count; breaks and shootouts do not. This differs deliberately from the conventional 90/120-minute cap. It is elapsed on-field time, not ball-in-play time. Position intervals in lineup JSON are not used because the source contains overlapping/inconsistent intervals.
+
+The club importer enables `allow_boundary_annotations`; World Cup defaults stay strict. An audit of all 380 club event files found 14 annotations after Half End: Ball Recovery/Ball Receipt*/Carry within 1.092 seconds, five yellow-card Bad Behaviour records within 32.992 seconds, and a Player On record 0.511 seconds after the first-half end in match 3825739. The named non-metric annotations are ignored by the minute state machine within bounds of 2 seconds (ball annotations) or 60 seconds (yellow cards). Player On within 1 second of a non-final boundary is applied at that boundary, adding no break time. The affected player was substituted at second-half start. Late metric events, substitutions, dismissals and unrecognized/out-of-bound annotations still fail ingestion. Source timestamps/JSON and Half End durations are not rewritten.
 
 Primary position is the group with most total seconds, with alphabetical group code as deterministic tie-break. Rates include all the player's events across all positions, not just their primary-role intervals. main_position_share exposes mixed-role exposure.
 

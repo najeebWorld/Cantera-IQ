@@ -144,6 +144,7 @@ export default function Home() {
     <header className="topbar">
       <Link href="/" className="brand" aria-label="Cantera IQ"><span className="brand-mark">C<span>IQ</span></span><span>Cantera <b>IQ</b></span></Link>
       <span className="workspace-label">{text.workspace}</span>
+      <Link className="player-link" href={`/clubs?${new URLSearchParams({ lang: language, q: query })}`}>{language === "en" ? "Clubs" : "Clubes"}</Link>
       <div className="languages" role="group" aria-label={text.language}>
         {(["en", "es"] as const).map(lang => <button key={lang} type="button" aria-pressed={language === lang}
           onClick={() => { if (lang !== language) { prepareSearch(DEFAULT_QUERY[lang]); setQuery(DEFAULT_QUERY[lang]); setLanguage(lang); void performSearch(DEFAULT_QUERY[lang], lang); } }}> {lang.toUpperCase()} </button>)}

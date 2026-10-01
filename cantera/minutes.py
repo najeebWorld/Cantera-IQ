@@ -34,7 +34,7 @@ def position_group(position_id: int) -> str:
     raise ValueError(f"Unknown position: {position_id}")
 
 
-def playing_stints(events: list[dict[str, Any]]) -> tuple[list[Stint], float]:
+def playing_stints(events: list[dict[str, Any]], allow_boundary_annotations: bool = False) -> tuple[list[Stint], float]:
     period_lengths: dict[int, float] = defaultdict(float)
     for event in events:
         if event["type"]["name"] == "Half End" and event["period"] <= 4:
@@ -73,7 +73,18 @@ def playing_stints(events: list[dict[str, Any]]) -> tuple[list[Stint], float]:
             continue
         clock = offsets[period] + seconds(event["timestamp"])
         if seconds(event["timestamp"]) > period_lengths[period] + 0.001:
-            raise ValueError("Event occurs after period end")
+            late_seconds = seconds(event["timestamp"]) - period_lengths[period]
+            annotation = event["type"]["name"]
+            if allow_boundary_annotations and (
+                (annotation in {"Ball Recovery", "Ball Receipt*", "Carry"} and late_seconds <= 2)
+                or (annotation == "Bad Behaviour" and late_seconds <= 60
+                    and event.get("bad_behaviour", {}).get("card", {}).get("name") == "Yellow Card")
+            ):
+                continue
+            if allow_boundary_annotations and annotation == "Player On" and late_seconds <= 1 and period < max(periods):
+                clock = offsets[period] + period_lengths[period]
+            else:
+                raise ValueError("Event occurs after period end")
         kind = event["type"]["name"]
         team_id = event.get("team", {}).get("id")
         player_id = event.get("player", {}).get("id")

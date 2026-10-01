@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowUpRight, CircleAlert, Database, LoaderCircle, RefreshCw
 import { EVIDENCE, METRICS, type Language, type Metric, type Evidence } from "../../labels";
 import PlayerRadar from "./radar";
 import PlayerComparisons from "./comparisons";
+import ClubFit from "../../clubs/fit";
 
 type PlayerMetric = {
   metric: Metric; total: number; per90: number | null; percentile: number | null;
@@ -97,6 +98,7 @@ export default function PlayerProfile({ playerId, initialLanguage, searchQuery }
     <header className="topbar">
       <Link href={backHref} className="brand" aria-label="Cantera IQ"><span className="brand-mark">C<span>IQ</span></span><span>Cantera <b>IQ</b></span></Link>
       <span className="workspace-label">{text.title}</span>
+      <Link className="player-link" href={`/clubs?${new URLSearchParams({ lang: language, ...(searchQuery ? { q: searchQuery } : {}) })}`}>{language === "en" ? "Clubs" : "Clubes"}</Link>
       <div className="languages" role="group" aria-label={text.language}>{(["en", "es"] as const).map(lang =>
         <button type="button" key={lang} aria-pressed={language === lang} onClick={() => changeLanguage(lang)}>{lang.toUpperCase()}</button>)}</div>
     </header>
@@ -156,6 +158,7 @@ export default function PlayerProfile({ playerId, initialLanguage, searchQuery }
         </section>
 
         <PlayerComparisons playerId={playerId} language={language} searchQuery={searchQuery} />
+        <ClubFit playerId={playerId} language={language} searchQuery={searchQuery} />
 
         <section className="profile-methodology"><h2>{text.methodology}</h2><p className="data-notice"><CircleAlert size={16} />{data.methodology.warning}</p>
           <dl className="profile-facts"><div><dt>{text.formula}</dt><dd><code>{data.methodology.per90_formula}</code></dd></div>
