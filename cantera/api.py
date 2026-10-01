@@ -4,10 +4,12 @@ from typing import Literal
 
 import duckdb
 from fastapi import FastAPI, HTTPException, Query
+from pydantic import BaseModel, ConfigDict, Field
 
+from cantera.search import search
 from cantera.store import DEFAULT_DB, dataset_summary, player_table, records
 
-app = FastAPI(title="Cantera IQ", version="0.1.0", description="Stage 1: database-grounded player metrics")
+app = FastAPI(title="Cantera IQ", version="0.2.0", description="Database-grounded player metrics and bilingual search")
 
 METRIC_DEFINITIONS = {
     "shots": {
@@ -56,6 +58,19 @@ def players(max_age: int = Query(23, ge=14, le=60), min_minutes: float = Query(1
     with connection() as database:
         return {"selection": "minutes_desc_not_talent_ranking", "dataset": dataset_summary(database),
                 "players": player_table(database, max_age, min_minutes, limit)}
+
+
+class SearchRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    query: str = Field(min_length=1, max_length=500)
+    lang: Literal["en", "es"] = "en"
+
+
+@app.post("/api/search")
+def search_players(request: SearchRequest):
+    with connection() as database:
+        return search(database, request.query, request.lang)
 
 
 @app.get("/api/methodology")
