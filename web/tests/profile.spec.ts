@@ -80,3 +80,66 @@ test("unknown player and unavailable service have distinct recoverable states", 
   await page.getByRole("button", { name: "Retry", exact: true }).click();
   await expect(page.getByRole("heading", { name: candidate.display_name, exact: true })).toBeVisible();
 });
+
+test("similarity details and historical snapshots agree with API in both languages", async ({ page, request }, testInfo) => {
+  const query = "Find wingers aged 23 or younger sorted by percentile for successful dribbles";
+  const search = await request.post("/api/search", { data: { query } });
+  const candidate = (await search.json()).players[0];
+  const similarityResponse = await request.get(`/api/players/${candidate.player_id}/similar`);
+  const historyResponse = await request.get(`/api/players/${candidate.player_id}/history`);
+  expect(similarityResponse.ok()).toBeTruthy();
+  expect(historyResponse.ok()).toBeTruthy();
+  const similar = await similarityResponse.json();
+  const historical = await historyResponse.json();
+  expect(similar.status).toBe("available");
+  expect(historical.status).toBe("available");
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.goto(`/players/${candidate.player_id}?${new URLSearchParams({ q: query, lang: "en" })}`);
+  const section = page.getByRole("region", { name: "Similar players", exact: true });
+  await expect(section.locator(".similarity-list > li")).toHaveCount(similar.comparisons.length);
+  const first = section.locator(".similarity-list > li").first();
+  await expect(first.locator(".distance-value strong")).toHaveText(new Intl.NumberFormat("en", { maximumFractionDigits: 2 }).format(similar.comparisons[0].distance));
+  await first.locator("summary").click();
+  await expect(first.locator("tbody tr")).toHaveCount(6);
+  await expect(page.locator(".history-table tbody tr")).toHaveCount(6);
+  for (const metric of historical.historical.metrics) {
+    const latest = historical.current.metrics.find((item: { metric: string }) => item.metric === metric.metric);
+    const format = (value: number) => new Intl.NumberFormat("en", { maximumFractionDigits: 2 }).format(value);
+    const row = page.locator(`[data-history-metric="${metric.metric}"]`);
+    await expect(row.locator("td").nth(1)).toHaveText(`${format(metric.total)} / ${format(metric.per90)}`);
+    await expect(row.locator("td").nth(2)).toHaveText(`${format(latest.total)} / ${format(latest.per90)}`);
+    expect(metric.percentile).toBeNull();
+  }
+  await expect(page.getByText("Historical percentiles unavailable: incomplete birth-date coverage.", { exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy();
+  await page.screenshot({ path: testInfo.outputPath("comparison.png"), fullPage: true });
+  await page.getByRole("button", { name: "ES", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Jugadores similares", exact: true })).toBeVisible();
+  await expect(page.locator(".history-table tbody tr")).toHaveCount(6);
+  await expect(page.getByRole("heading", { name: "Muestras historicas", exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBeTruthy();
+  await page.screenshot({ path: testInfo.outputPath("comparison-spanish.png"), fullPage: true });
+  await page.getByRole("link", { name: similar.comparisons[0].player.display_name, exact: true }).click();
+  await expect(page.getByRole("heading", { name: similar.comparisons[0].player.display_name, exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Volver a la busqueda", exact: true }).click();
+  await expect(page.getByLabel("Solicitud de busqueda")).toHaveValue(query);
+  expect(errors).toEqual([]);
+});
+
+test("comparison errors retry independently and insufficient evidence stays empty", async ({ page, request }) => {
+  const search = await request.post("/api/search", { data: { query: "Find wingers aged 23 or younger sorted by successful dribbles" } });
+  const candidate = (await search.json()).players.find((player: { percentile: number | null }) => player.percentile === null);
+  await page.route("**/api/players/*/history?*", route => route.fulfill({ status: 503, body: "Unavailable" }));
+  await page.goto(`/players/${candidate.player_id}`);
+  const similarity = page.getByRole("region", { name: "Similar players", exact: true });
+  await expect(similarity.getByRole("status")).toContainText("Too few qualified players");
+  await expect(similarity.locator(".similarity-list > li")).toHaveCount(0);
+  const history = page.getByRole("region", { name: "Historical snapshots", exact: true });
+  await expect(history.getByRole("alert")).toContainText("Comparison data unavailable");
+  await page.unroute("**/api/players/*/history?*");
+  await history.getByRole("button", { name: "Retry", exact: true }).click();
+  await expect(history.getByRole("status")).toContainText("No 2018 record");
+  await expect(history.locator(".history-table")).toHaveCount(0);
+  await expect(page.locator(".metric-table tbody tr")).toHaveCount(6);
+});

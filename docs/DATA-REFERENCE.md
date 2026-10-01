@@ -18,11 +18,15 @@ Last verified: 2026-10-01. Methodology: stage1-v1.
 
 Full downloaded event and lineup JSON is preserved in the source cache. The events table contains only the supported metric event types, not every raw event. kloppy can emit multiple typed records for one source event: the adapter deduplicates on the original UUID and checks coverage against raw event types.
 
+Stage 4 retains this schema in two physically isolated databases: data/cantera.duckdb (WC2022, default search/profile) and data/cantera-2018.duckdb (WC2018, historical API only). Every view above is local to its own competition-season. No aggregated view unions periods. The historical import has all 64 matches, 227825 raw events, 69798 metric events, 736 roster identities and 604 active players; all historical stored birth dates remain null. Full details: [comparison contract](COMPARISON.md).
+
 ## Identity And Age
 
 Age is completed years on the earliest match date in the imported competition-season. In the demo this is 2022-11-20, not today's age or the age on each appearance. A player who turns 24 during the tournament remains in the opening-day age cohort.
 
 FIFA identities are joined using the fixed 2022 tournament + national team + shirt number. This avoids guessing from name spellings. The FIFA source name is retained for human review; no fuzzy name matching is used. Explicit country aliases handle USA, Korea Republic and IR Iran. Unmatched dates are NULL and excluded from age-filtered samples and percentiles. Unknown ages remain visible in player_summary. Squad-list names are not independently verified against a second birth-date source.
+
+Historical display matches the same StatsBomb ID and normalized full name, rejects conflicts, and reuses current verified birth-date provenance without changing stored historical data. The historical age reference is 2018-06-14. Team, shirt, primary role, minutes and appearances remain period-specific. Historical age bands/percentiles/peer counts are not published, even for matched identities, to avoid ranks based only on returning players. The derived response evidence status is historical_cohort_unavailable; it is not a persisted player_metrics status. The two-period rate comparison requires each sample's minimum minutes.
 
 ## Playing Time And Position
 

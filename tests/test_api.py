@@ -25,6 +25,28 @@ def test_api_returns_database_values_and_empty_dataset(client):
     assert response.json()["dataset"]["players"] == 0
 
 
+@pytest.mark.parametrize("suffix", ["similar", "history"])
+def test_comparison_api_validates_ids_and_languages(client, suffix):
+    assert client.get(f"/api/players/999/{suffix}").status_code == 404
+    assert client.get(f"/api/players/0/{suffix}").status_code == 422
+    assert client.get(f"/api/players/1/{suffix}?lang=fr").status_code == 422
+    assert client.get("/api/players/1/similar?limit=11").status_code == 422
+
+
+def test_comparison_api_reports_missing_evidence_and_history(client, monkeypatch, tmp_path):
+    with duckdb.connect(os.environ["CANTERA_DB"]) as database:
+        database.execute("INSERT INTO players (player_id, name) VALUES (1, 'Unused Player')")
+    monkeypatch.setenv("CANTERA_HISTORY_DB", str(tmp_path / "absent.duckdb"))
+    similar = client.get("/api/players/1/similar?lang=es").json()
+    assert similar["comparisons"] == []
+    assert similar["reason"] == "no_minutes"
+    assert similar["explanation"].startswith("No hay minutos")
+    historical = client.get("/api/players/1/history?lang=es").json()
+    assert historical["reason"] == "historical_dataset_unavailable"
+    assert historical["explanation"].startswith("Los datos de 2018")
+    assert historical["historical_percentiles_available"] is False
+
+
 def test_api_validates_limits_and_language(client):
     assert client.get("/api/players?limit=0").status_code == 422
     assert client.get("/api/players?max_age=23;DROP%20TABLE%20players").status_code == 422

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, CircleAlert, Database, LoaderCircle, RefreshCw, UserRound } from "lucide-react";
 import { EVIDENCE, METRICS, type Language, type Metric, type Evidence } from "../../labels";
 import PlayerRadar from "./radar";
+import PlayerComparisons from "./comparisons";
 
 type PlayerMetric = {
   metric: Metric; total: number; per90: number | null; percentile: number | null;
@@ -153,6 +154,8 @@ export default function PlayerProfile({ playerId, initialLanguage, searchQuery }
               </tr>)}</tbody></table>
           </div>
         </section>
+
+        <PlayerComparisons playerId={playerId} language={language} searchQuery={searchQuery} />
 
         <section className="profile-methodology"><h2>{text.methodology}</h2><p className="data-notice"><CircleAlert size={16} />{data.methodology.warning}</p>
           <dl className="profile-facts"><div><dt>{text.formula}</dt><dd><code>{data.methodology.per90_formula}</code></dd></div>

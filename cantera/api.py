@@ -7,9 +7,10 @@ from fastapi import FastAPI, HTTPException, Path as ApiPath, Query
 from pydantic import BaseModel, ConfigDict, Field
 
 from cantera.search import explain_evidence, search
-from cantera.store import DEFAULT_DB, dataset_summary, player_profile, player_table, records
+from cantera.comparison import historical_comparison, similar_players
+from cantera.store import DEFAULT_DB, HISTORY_DB, dataset_summary, player_profile, player_table, records
 
-app = FastAPI(title="Cantera IQ", version="0.3.0", description="Database-grounded search and player profiles")
+app = FastAPI(title="Cantera IQ", version="0.4.0", description="Database-grounded search, profiles and comparisons")
 
 METRIC_DEFINITIONS = {
     "shots": {
@@ -44,6 +45,59 @@ def connection() -> duckdb.DuckDBPyConnection:
     if not path.is_file():
         raise HTTPException(503, detail="Dataset unavailable. Run: python -m cantera ingest")
     return duckdb.connect(str(path), read_only=True)
+
+
+COMPARISON_REASONS = {
+    "goalkeeper_metrics_unavailable": ("Goalkeeper-specific metrics are unavailable.", "No hay metricas especificas de porteria."),
+    "incomplete_metrics": ("The six-metric profile is incomplete.", "El perfil de seis metricas esta incompleto."),
+    "insufficient_minutes": ("At least the dataset minimum minutes are required in each compared sample.", "Se requieren los minutos minimos del conjunto en cada muestra comparada."),
+    "insufficient_peers": ("Too few qualified players in this cohort.", "No hay suficientes jugadores elegibles en este grupo."),
+    "missing_birth_date": ("No verified birth date for the age cohort.", "No hay fecha de nacimiento verificada para el grupo de edad."),
+    "no_minutes": ("No recorded playing minutes.", "No hay minutos jugados registrados."),
+    "no_eligible_candidates": ("No eligible comparison players.", "No hay jugadores elegibles para comparar."),
+    "no_historical_record": ("No 2018 record for this player.", "No hay registro de 2018 para este jugador."),
+    "identity_conflict": ("Player identity requires review; comparison withheld.", "La identidad requiere revision; comparacion no disponible."),
+    "unsupported_periods": ("These datasets are not the approved 2018 and 2022 World Cup samples.", "Estos datos no corresponden a las muestras aprobadas de los Mundiales de 2018 y 2022."),
+    "historical_dataset_unavailable": ("The 2018 dataset is unavailable.", "Los datos de 2018 no estan disponibles."),
+}
+
+
+@app.get("/api/players/{player_id}/similar")
+def similarities(player_id: int = ApiPath(ge=1, le=9223372036854775807),
+                 lang: Literal["en", "es"] = "en", limit: int = Query(5, ge=1, le=10)):
+    with connection() as database:
+        result = similar_players(database, player_id, limit)
+        if result is None:
+            raise HTTPException(404, detail="Player not found" if lang == "en" else "Jugador no encontrado")
+        result["dataset"] = dataset_summary(database)
+    result["language"] = lang
+    result["explanation"] = COMPARISON_REASONS[result["reason"]][lang == "es"] if result["reason"] else None
+    result["methodology"] = (
+        "Mean absolute difference across six percentiles, equally weighted. Lower distance means a closer observed profile, not talent or a probability. Same tournament, primary position and age band; qualified minutes and complete percentiles only. Rates include all roles. Player ID breaks ties.",
+        "Diferencia absoluta media de seis percentiles con pesos iguales. Una distancia menor indica un perfil observado mas cercano, no talento ni probabilidad. Mismo torneo, posicion principal y grupo de edad; solo minutos elegibles y percentiles completos. Las tasas incluyen todos los roles. El identificador desempata."
+    )[lang == "es"]
+    return result
+
+
+@app.get("/api/players/{player_id}/history")
+def history(player_id: int = ApiPath(ge=1, le=9223372036854775807), lang: Literal["en", "es"] = "en"):
+    path = Path(os.environ.get("CANTERA_HISTORY_DB", str(HISTORY_DB)))
+    with connection() as database:
+        if player_profile(database, player_id) is None:
+            raise HTTPException(404, detail="Player not found" if lang == "en" else "Jugador no encontrado")
+        if not path.is_file():
+            result = {"status": "unavailable", "reason": "historical_dataset_unavailable", "historical": None,
+                      "historical_percentiles_available": False, "identity_verified": False}
+        else:
+            with duckdb.connect(str(path), read_only=True) as historical:
+                result = historical_comparison(database, historical, player_id)
+    result["language"] = lang
+    result["explanation"] = COMPARISON_REASONS[result["reason"]][lang == "es"] if result["reason"] else None
+    result["methodology"] = (
+        "World Cup snapshots, not continuous seasons or a development forecast. All 2018 rosters were imported; historical age-cohort percentiles are withheld because birth-date coverage is incomplete. Identity uses StatsBomb ID and normalized full name; birth dates retain the verified 2022 FIFA source. Age is calculated at each tournament start. Opponents, roles, team context and small samples differ; xG model equivalence is unverified. A change in per90 is not evidence of improved ability.",
+        "Muestras de Mundiales, no temporadas continuas ni una prediccion de desarrollo. Se importaron todas las plantillas de 2018; no se publican percentiles historicos por cobertura incompleta de fechas de nacimiento. Identidad por ID de StatsBomb y nombre completo normalizado; nacimiento con fuente FIFA 2022 verificada. Edad al inicio de cada torneo. Cambian rivales, roles, contexto y muestras; la equivalencia de modelos xG no esta verificada. Un cambio por 90 no demuestra mejora de capacidad."
+    )[lang == "es"]
+    return result
 
 
 @app.get("/api/coverage")
