@@ -1,6 +1,6 @@
 # Cantera IQ
 
-Working stages 1-5 prototype: StatsBomb Open Data -> replaceable provider -> isolated DuckDB samples -> FastAPI -> English/Spanish Next.js search, player profiles, comparisons and historical club squads. Analytics remain read-only; user-configured club preferences are saved separately. Stage 2 uses a constrained local grammar, not an LLM or unrestricted language understanding.
+Working stages 1-6 prototype: StatsBomb Open Data -> replaceable provider -> isolated DuckDB samples -> FastAPI -> English/Spanish Next.js search, player profiles, comparisons, historical club squads and printable evidence reports. Analytics remain read-only; user-configured club preferences are saved separately. Stage 2 uses a constrained local grammar, not an LLM or unrestricted language understanding.
 
 ## Run
 
@@ -51,6 +51,7 @@ The API has no arbitrary SQL endpoint. Analytics connections are read-only; the 
 - [Search contract, examples, limits and review](docs/SEARCH.md).
 - [Stage 4 comparison contract and verification](docs/COMPARISON.md).
 - [Stage 5 clubs, preferences and verification](docs/CLUB-PROFILE.md).
+- [Stage 6 player report and verification](docs/PLAYER-REPORT.md).
 - [Data-source research and scope decision](docs/DATA-SOURCES.md).
 
 The import uses all 64 matches of the men's World Cup 2022, not the entire StatsBomb repository. Player ages are at 2022-11-20. The team field is the national team in the observed matches, not a current club. The sample is ordered by minutes, not talent. These are historical first-team observations, not academy coverage.
@@ -67,7 +68,7 @@ Implementation: `cantera.store.player_profile` reads `player_summary` and `playe
 
 ## Boundaries
 
-Search supports a documented English/Spanish grammar for position, age, national team, minimum minutes, one metric, numeric thresholds and descending order. Unsupported language, qualitative potential, tracking speed and conflicting requests require clarification. Stage 4 implements WC2018/WC2022 snapshots, not continuous development. Stage 5 adds a separate preference index, not a talent score or recommendation, and does not change search, cohorts or similarity. kloppy parses events; Chart.js renders the radar. Stage 6 still requires approval.
+Search supports a documented English/Spanish grammar for position, age, national team, minimum minutes, one metric, numeric thresholds and descending order. Unsupported language, qualitative potential, tracking speed and conflicting requests require clarification. Stage 4 implements WC2018/WC2022 snapshots, not continuous development. Stage 5 adds a separate preference index, not a talent score or recommendation, and does not change search, cohorts or similarity. kloppy parses events; Chart.js renders the radar. Stage 6 summarizes existing evidence, not predicted development.
 
 Profiles now include up to five similar players, expandable paired metrics, and same-player historical totals/per90 with changes when both tournaments have sufficient minutes. All 64 matches per tournament are isolated in separate databases; 2018 has 736 roster players, 604 active players and 96 players with >=180 minutes in both samples. Historical age-cohort percentiles are withheld because full birth-date coverage is unavailable. Verified 2022 birth-date provenance is reused for paired display only after matching StatsBomb ID and normalized name. The original 2022 file and search defaults remain unchanged.
 
@@ -77,7 +78,7 @@ Only one competition-season per database is supported. Provider replacement uses
 
 Tests cover stoppage time, half-time substitutions, extra time, temporary exits, red cards, tactical changes, shootout exclusion, birth-date boundaries, tied percentiles, cohort isolation, insufficient samples, API validation, atomic import failure and repeat imports. With both snapshots imported, tests reconcile all six metrics in all 128 matches against checksummed raw data and check interval overlap and team-minute bounds.
 
-135 Python tests pass, including independent reconciliation of six metrics across all 508 imported matches, club/player isolation, atomic preferences and revision conflicts. Twenty Playwright cases pass with isolated preference storage: search, profiles, comparisons, club squads, saved preferences, missing evidence, retries and bilingual navigation on desktop/mobile. World Cup files remain byte-identical. Screenshots were visually inspected under `web/test-results/`; existing radar tests verify nonblank pixels. Lint and production build pass.
+135 Python tests pass, including independent reconciliation of six metrics across all 508 imported matches, club/player isolation, atomic preferences and revision conflicts. Thirty-four Playwright cases pass with isolated preference storage: search, profiles, comparisons, club squads, saved preferences, missing evidence, retries, bilingual navigation and reports on desktop/mobile. All three analytics files remain byte-identical. Screenshots and a rendered report PDF were visually inspected; report PDFs are checked for one A4 page and retained source text, and radar tests verify nonblank pixels. TypeScript, lint and production build pass.
 
 With both servers and the imported dataset available:
 
@@ -110,6 +111,12 @@ CANTERA_CLUB_PROFILES="$(mktemp -d)/profiles.json" .venv/bin/python -m uvicorn c
 ```
 
 Then run `CANTERA_CLUB_TEST_API=http://127.0.0.1:8003 npm test` from `web`. This exercises real saves without modifying normal preferences. Stop the temporary API after testing. Both regular servers and all three imported datasets must be available.
+
+## Player Reports
+
+Open the **Player report** link on a profile, or http://127.0.0.1:3002/players/3009/report. Switch English/Spanish and optionally select a club with previously saved preferences. Reports include six metrics, an eligible radar, historical snapshots, three similar players, deterministic relative-volume observations, sources and limitations. Reload refreshes the assembled evidence; the report cannot save preferences.
+
+Choose **Print**, then **Save as PDF** in Chromium: A4 portrait, 100% scale, 10mm margins, headers/footers disabled. One-page output is verified in Chromium; other print engines are not certified. Loading and service failures block printing; legitimate unavailable evidence remains explicit and printable. There is no server PDF service or report archive. See [report contract](docs/PLAYER-REPORT.md) for evidence boundaries and verification.
 
 ## Data Terms
 

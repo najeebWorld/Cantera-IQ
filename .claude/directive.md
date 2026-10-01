@@ -2,13 +2,15 @@
 
 Last session: 2026-10-01
 
-Status: Stage 5 implementation and verification complete; awaiting user review. Stage 6 is not authorized.
+Status: Stage 6 implemented and verified after explicit contract approval; awaiting user acceptance. Evidence and gates: docs/PLAYER-REPORT.md and .claude/project-tracker.md.
 
 The user approved the revised historical multi-club contract. See docs/CLUB-PROFILE.md for delivered behavior and verification evidence, and .claude/project-tracker.md for progress. Do not ask for implementation GO again or reopen paid-source research. Demo: http://127.0.0.1:3002/clubs. Historical club age/ranks/fit remain unavailable; saved preferences are demonstrated separately on eligible WC2022 profiles.
 
 ## Next Session
 
-Review the delivered Stage 5 UI with the user; address concrete feedback within the accepted scope. Read docs/CLUB-PROFILE.md first. Keep Stage 4 similarity and historical comparisons unchanged; do not start Stage 6 without approval. Preference writes require the configured local frontend Origin, one API worker and a JSON file separate from all databases. Browser mutation tests must target an isolated API/preferences path; see README.md.
+Collect user acceptance or revision feedback on http://127.0.0.1:3002/players/3009/report. Do not ask for implementation GO again. Read docs/PLAYER-REPORT.md for delivered scope and verified print settings. Reports reuse existing GET endpoints, with no new backend calculations or writes. Preserve Stage 4 calculations and Stage 5 storage. Other print engines and public redistribution are not certified. The isolated test API on 8003 has been stopped; normal API8001/UI3002 remain available. The earlier Stage 6 gates in historical delivery docs are superseded by the tracker.
+
+For Stage 5 feedback, read docs/CLUB-PROFILE.md. Preference writes require the configured local frontend Origin, one API worker and a JSON file separate from all databases. Browser mutation tests must target an isolated API/preferences path; see README.md. Report tests must not write normal preferences.
 
 For current analytics, read docs/COMPARISON.md, README.md and docs/DATA-REFERENCE.md. WC2018/WC2022 scope is already approved; the generalized migration proposal in docs/DATA-SOURCES.md remains future work. No continuous trajectories can be inferred from tournament snapshots.
 

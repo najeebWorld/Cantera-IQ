@@ -10,14 +10,27 @@ Last updated: 2026-10-01
 | 02 | Constrained English/Spanish player search and Next.js search screen | Complete; user approved progression |
 | 03 | Next.js bilingual player page, radar and percentiles | Complete; user approved progression |
 | 04 | Similar players and historical comparison | Complete in approved snapshot scope; user approved progression to Stage 5 |
-| 05 | Multiple historical clubs, squads and position-specific preferences | Implemented and verified; awaiting user review |
-| 06 | One-page explainable development report | Not authorized yet |
+| 05 | Multiple historical clubs, squads and position-specific preferences | Implemented and verified; user authorized progression to Stage 6 |
+| 06 | One-page explainable development report | Implemented and verified in evidence-summary scope; awaiting user acceptance |
 
 ## Verification
 
-135 Python tests and 20 desktop/mobile browser tests pass; Next.js lint/build pass. All six metrics reconcile to checksummed source events across 508 matches. Club isolation, atomic import/preferences, concurrent different-club saves, conflicts, missing evidence and existing search/profile/comparison behavior pass. Browser mutation tests use an isolated temporary preferences file. Screenshots inspected. Both World Cup SHA-256 hashes unchanged. Known non-failing Starlette/httpx deprecation warning. Delivery contracts: docs/CLUB-PROFILE.md and docs/COMPARISON.md.
+135 Python tests and 34 desktop/mobile browser tests pass; TypeScript and Next.js lint/build pass. All six metrics reconcile to checksummed source events across 508 matches. Reports match existing API values and preserve errors, unavailable evidence and stale-request isolation. Bilingual one-page A4 PDFs verified with pypdf; screenshots and rasterized PDF inspected. Browser mutations used isolated temporary preferences. All three database hashes unchanged; normal preferences untouched. Known non-failing Starlette/httpx warning. Detailed delivery evidence: docs/PLAYER-REPORT.md, docs/CLUB-PROFILE.md and docs/COMPARISON.md.
 
 ## Active Work
+
+### Stage 6
+
+**Decision:** User approved progression and then explicitly approved the focused WC2022-based English/Spanish report contract, optional saved club preferences and browser print-to-PDF. Implemented without backend or data changes. Delivery: [Player report](../docs/PLAYER-REPORT.md#delivery-evidence). Demo: http://127.0.0.1:3002/players/3009/report.
+
+- [x] Scope report against existing profile/comparison/preference APIs
+- [x] Write focused design and challenge review; verify all five referenced GET routes exist
+- [x] User GO on report contract and print-to-PDF format
+- [x] Implement base report and validate print-layout probe
+- [x] Add evidence sections and run focused correctness checks
+- [x] Verify bilingual desktop/mobile/PDF and regressions
+- [x] Present Stage 6 delivery for user acceptance
+- [ ] User acceptance or revision feedback
 
 ### Stage 5
 
@@ -34,7 +47,7 @@ Last updated: 2026-10-01
 - [x] Implement and verify persistence/API boundaries
 - [x] Implement and verify bilingual settings/profile UI
 - [x] Run regression gates and present Stage 5 review
-- [ ] User review of Stage 5 delivery
+- [x] User authorized progression to Stage 6 after delivery; no new Stage 5 feedback supplied
 
 ### Stage 4 Delivery Record
 
@@ -49,4 +62,4 @@ The user chose research first, then approved WC2018/WC2022 snapshots. Delivery u
 
 ## Review Gate
 
-Stage 5 is ready for user review. Stage 4 remains a snapshot comparison, not continuous development or prediction. Stage 6 and the final question-to-report demo remain outside current authorization. Current observed branch is main; no branch operations, commit or push were performed for Stage 5. Do not perform Git mutations without a new instruction.
+Stage 6 is implemented and verified under the approved docs/PLAYER-REPORT.md contract; awaiting user acceptance. Stage 4 remains a snapshot comparison, not continuous development or prediction. Last observed branch was main; no branch operations, commit or push were performed for Stage 5 or Stage 6. Do not perform Git mutations without a new instruction.

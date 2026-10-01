@@ -11,12 +11,12 @@ type Snapshot = {
   metrics: { metric: Metric; total: number; per90: number | null; percentile: number | null; evidence_status: Evidence }[];
 };
 type BaseResponse = { status: "available" | "unavailable"; explanation: string | null; methodology: string };
-type Similarity = BaseResponse & {
+export type Similarity = BaseResponse & {
   candidate_count: number; player: Snapshot;
   comparisons: { player: Snapshot; distance: number; differences: { metric: Metric; source_per90: number;
     candidate_per90: number; source_percentile: number; candidate_percentile: number; difference: number }[] }[];
 };
-type History = BaseResponse & { current?: Snapshot; historical: Snapshot | null };
+export type History = BaseResponse & { current?: Snapshot; historical: Snapshot | null };
 
 const COPY = {
   en: {

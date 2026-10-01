@@ -6,7 +6,7 @@ import { ArrowUpRight, RefreshCw } from "lucide-react";
 import { METRICS, type Language, type Metric } from "../labels";
 import { CLUB_COPY, ClubStatus, useClubData, type Club } from "./shared";
 
-type Fit = { club: Club; score: number | null; revision: number; position: string; explanation: string | null; methodology: string;
+export type Fit = { club: Club; score: number | null; revision: number; position: string; explanation: string | null; methodology: string;
   contributions: { metric: Metric; weight: number; share: number; percentile: number | null; contribution: number }[] };
 
 export default function ClubFit({ playerId, language, searchQuery }: { playerId: string; language: Language; searchQuery: string }) {
