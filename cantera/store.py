@@ -4,11 +4,24 @@ from uuid import uuid4
 
 import duckdb
 
-from cantera.providers import BirthDateProvider, MatchProvider, SourceCache
+from cantera.providers import BirthDateProvider, MatchProvider, SourceCache, StatsBombOpenData
 
 SCHEMA = Path(__file__).with_name("schema.sql")
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DB = ROOT / "data" / "cantera.duckdb"
+HISTORY_DB = ROOT / "data" / "cantera-2018.duckdb"
+
+
+def build_history_database(path: Path, cache: SourceCache) -> dict[str, Any]:
+    if path.resolve() == DEFAULT_DB.resolve():
+        raise ValueError("Historical import must not replace the default database")
+    if path.exists():
+        with duckdb.connect(str(path), read_only=True) as database:
+            scope = database.execute("SELECT DISTINCT competition, season FROM matches").fetchall()
+        if scope != [("FIFA World Cup", "2018")]:
+            raise ValueError("Historical destination is not a World Cup 2018 database")
+    return build_database(path, StatsBombOpenData(cache, competition_id=43, season_id=3), None, cache,
+                          expected_matches=64)
 
 
 def player_table(connection: duckdb.DuckDBPyConnection, max_age: int = 23,

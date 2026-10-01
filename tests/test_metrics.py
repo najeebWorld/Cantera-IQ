@@ -5,6 +5,7 @@ import pytest
 
 from cantera.store import SCHEMA, player_profile, player_table, records
 from cantera.search import SearchPlan, execute_search, search
+from cantera.comparison import similar_players
 
 
 @pytest.fixture
@@ -142,3 +143,37 @@ def test_profile_preserves_zero_percentiles_and_unknown_player(database):
     profile = player_profile(database, 1)
     assert next(metric for metric in profile["metrics"] if metric["metric"] == "shots")["percentile"] == 0
     assert player_profile(database, 9999) is None
+
+
+def test_similarity_distance_self_exclusion_and_fixed_cohort(database):
+    result = similar_players(database, 2)
+    assert result["candidate_count"] == 5
+    assert [item["player_id"] for item in result["comparisons"]] == [3, 1, 4, 5, 6]
+    assert result["comparisons"][0]["distance"] == 0
+    assert result["comparisons"][1]["distance"] == pytest.approx(30 / 6)
+    assert all(metric["peer_count"] == 6 for item in result["comparisons"] for metric in item["player"]["metrics"])
+    assert similar_players(database, 2, 1)["comparisons"] == result["comparisons"][:1]
+
+
+def test_similarity_ties_use_stable_player_ids(database):
+    database.execute("UPDATE events SET shots = 0")
+    result = similar_players(database, 3)
+    assert [item["player_id"] for item in result["comparisons"]] == [1, 2, 4, 5, 6]
+    assert all(item["distance"] == 0 for item in result["comparisons"])
+
+
+@pytest.mark.parametrize("identifier,reason", [(7, "insufficient_minutes"), (8, "insufficient_peers"),
+                                             (9, "missing_birth_date"), (11, "no_minutes")])
+def test_similarity_never_substitutes_missing_percentiles(database, identifier, reason):
+    result = similar_players(database, identifier)
+    assert result["status"] == "unavailable"
+    assert result["reason"] == reason
+    assert result["comparisons"] == []
+
+
+def test_similarity_unknown_goalkeepers_and_limits(database):
+    assert similar_players(database, 9999) is None
+    database.execute("UPDATE stints SET position = 'GK' WHERE player_id = 1")
+    assert similar_players(database, 1)["reason"] == "goalkeeper_metrics_unavailable"
+    with pytest.raises(ValueError):
+        similar_players(database, 2, 0)

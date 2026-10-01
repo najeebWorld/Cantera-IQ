@@ -1,4 +1,24 @@
 :root { --ink: #202924; --muted: #65716a; --line: #dce2dd; --green: #246448; --pale: #eaf2ec; --paper: #fbfcfa; --amber: #926022; }
+.comparison-section { margin-top: 32px; padding-top: 26px; border-top: 1px solid var(--line); min-width: 0; }
+.comparison-section details { font-size: 13px; line-height: 1.6; }
+.comparison-section summary { cursor: pointer; color: var(--green); padding: 8px 0; }
+.similarity-list { list-style: none; margin: 16px 0 0; padding: 0; }
+.similarity-list > li { border-bottom: 1px solid var(--line); padding: 18px 0; }
+.similarity-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; }
+.similarity-heading .player-link { display: inline-flex; gap: 6px; align-items: center; font-weight: 600; overflow-wrap: anywhere; }
+.distance-value { display: flex; flex-direction: column; gap: 4px; text-align: right; flex-shrink: 0; }
+.distance-value span { font-size: 11px; color: var(--muted); }
+.distance-value strong { font-family: "Barlow Condensed", sans-serif; font-size: 25px; color: var(--green); font-weight: 500; }
+.comparison-table { min-width: 570px; table-layout: fixed; }
+.comparison-table th { white-space: normal; }
+.comparison-table th:first-child { width: 30%; }
+.snapshot-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; margin: 22px 0; }
+.snapshot-grid h3 { font-family: "Barlow Condensed", sans-serif; font-size: 25px; font-weight: 500; margin: 0 0 10px; }
+@media (max-width: 760px) {
+  .snapshot-grid { gap: 22px; grid-template-columns: minmax(0, 1fr); }
+  .similarity-heading { flex-direction: column; gap: 12px; }.distance-value { text-align: left; }
+  .comparison-section .section-heading { align-items: flex-start; flex-wrap: wrap; }
+}
 .player-link { text-decoration: none; }
 .player-link:hover { color: var(--green); text-decoration: underline; }
 .profile-shell > .topbar { min-height: 76px; }
