@@ -4,6 +4,7 @@ import duckdb
 import pytest
 
 from cantera.store import SCHEMA, player_table, records
+from cantera.search import SearchPlan, execute_search, search
 
 
 @pytest.fixture
@@ -67,3 +68,49 @@ def test_display_filter_does_not_change_cohort(database):
     sample = player_table(database, limit=1)
     assert len(sample) == 1
     assert all(metric["peer_count"] == 6 for metric in sample[0]["metrics"])
+
+
+def test_search_filters_preserve_full_cohort(database):
+    result = execute_search(database, SearchPlan(position="CM", max_age=23, metric="shots", sort_by="per90", limit=1))
+    assert result["total_matches"] == 6
+    row = result["players"][0]
+    assert row["player_id"] == 6
+    assert row["per90"] == pytest.approx(1.8)
+    assert row["percentile"] == 100
+    assert row["peer_count"] == 6
+    assert row["evidence_status"] == "limited_sample"
+    assert "4.00 / 200.0 * 90 = 1.80" in row["explanation"]
+
+
+def test_search_lower_minutes_retains_missing_percentiles(database):
+    result = execute_search(database, SearchPlan(min_minutes=0, metric="shots", sort_by="per90"))
+    row = next(player for player in result["players"] if player["player_id"] == 7)
+    assert row["percentile"] is None
+    assert row["evidence_status"] == "insufficient_minutes"
+    assert "below the 180-minute minimum" in row["explanation"]
+    assert all(player["minutes"] > 0 for player in result["players"])
+
+
+def test_percentile_order_excludes_unqualified_rows(database):
+    result = execute_search(database, SearchPlan(min_minutes=0, metric="shots", sort_by="percentile", min_percentile=30))
+    assert [row["player_id"] for row in result["players"]] == [6, 5, 4, 2, 3]
+    assert all(row["peer_count"] == 6 for row in result["players"])
+
+
+def test_search_uses_database_minute_setting_and_no_hidden_metric(database):
+    database.execute("UPDATE settings SET min_minutes = 201")
+    result = search(database, "Find players")
+    assert result["effective_min_minutes"] == 201
+    assert result["players"] == []
+    result = search(database, "Find players with at least 0 minutes")
+    assert result["players"][0]["metric"] is None
+    assert result["players"][0]["per90"] is None
+    assert result["players"][0]["name"] == "Player 1"
+
+
+def test_quoted_team_cannot_inject_sql(database):
+    result = search(database, 'Find players from "Team\'; DROP TABLE players; --"')
+    assert result["status"] == "needs_clarification"
+    assert database.execute("SELECT count(*) FROM players").fetchone()[0] == 11
+    valid = search(database, 'Find players from "Team"')
+    assert valid["interpretation"]["team"] == "Team"

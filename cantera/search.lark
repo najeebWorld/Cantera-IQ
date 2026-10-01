@@ -1,0 +1,45 @@
+start: intro? result_limit? age_filter? subject clause* punctuation?
+intro: "show me" | "show" | "find" | "search for" | "muestrame" | "busca" | "buscar"
+result_limit: "top" INT | INT | "los" INT | "the" INT
+?subject: "players" -> all_players
+        | "jugadores" -> all_players
+        | position
+?position: ("wingers" | "winger" | "extremos") -> winger
+         | ("strikers" | "striker" | "forwards" | "delanteros") -> striker
+         | ("centre backs" | "center backs" | "central defenders" | "centrales") -> centre_back
+         | ("fullbacks" | "full backs" | "laterales") -> full_back
+         | ("defensive midfielders" | "holding midfielders" | "mediocentros defensivos" | "pivotes") -> defensive_midfield
+         | ("central midfielders" | "centrocampistas centrales") -> central_midfield
+         | ("attacking midfielders" | "mediapuntas") -> attacking_midfield
+         | ("goalkeepers" | "porteros") -> goalkeeper
+?clause: _connector? (age_filter | minutes_filter | team_filter | rate_sort | percentile_sort | minutes_sort | rate_filter | percentile_filter)
+_connector: "with" | "and" | "con" | "y" | ","
+?age_filter: ("under" | "younger than" | "menores de" | "u") INT "anos"? -> age_under
+           | ("aged" | "age") INT ("or younger" | "and under") -> age_max
+           | "up to age" INT -> age_max
+           | "hasta" INT "anos" -> age_max
+           | "age" "<=" INT -> age_max
+           | "age" "<" INT -> age_under
+           | "aged" INT "to" INT -> age_range
+           | "de" INT "a" INT "anos" -> age_range
+minutes_filter: ("at least" | "minimum" | "al menos" | "minimo") NUMBER ("minutes" | "minutos")
+team_filter: ("from" | "for" | "de") (ESCAPED_STRING | TEAM)
+rate_sort: ("sorted by" | "ranked by" | "order by" | "by" | "ordenados por" | "por") metric rate_unit?
+percentile_sort: ("sorted by percentile for" | "ranked by percentile for" | "by percentile for" | "ordenados por percentil de") metric
+minutes_sort: ("sorted by" | "ranked by" | "order by" | "by" | "ordenados por" | "por") ("minutes" | "minutos")
+rate_filter: ("at least" | "minimum" | "al menos" | "minimo") NUMBER metric rate_unit
+percentile_filter: ("percentile at least" | "percentil minimo") NUMBER ("for" | "de") metric
+rate_unit: "per 90" | "per90" | "/90" | "por 90"
+?metric: ("shots" | "tiros") -> shots
+        | ("npxg" | "non-penalty xg" | "xg sin penalti") -> npxg
+        | ("key passes" | "shot assists" | "pases clave") -> key_passes
+        | ("completed passes" | "pases completados") -> completed_passes
+        | ("successful dribbles" | "dribbles" | "regates exitosos" | "regates") -> successful_dribbles
+        | ("tackles won" | "entradas ganadas") -> tackles_won
+punctuation: "." | "?"
+TEAM: "argentina" | "australia" | "belgium" | "belgica" | "brazil" | "brasil" | "cameroon" | "camerun" | "canada" | "costa rica" | "croatia" | "croacia" | "denmark" | "dinamarca" | "ecuador" | "england" | "inglaterra" | "france" | "francia" | "germany" | "alemania" | "ghana" | "iran" | "japan" | "japon" | "mexico" | "morocco" | "marruecos" | "netherlands" | "paises bajos" | "poland" | "polonia" | "portugal" | "qatar" | "catar" | "saudi arabia" | "arabia saudita" | "senegal" | "serbia" | "south korea" | "corea del sur" | "spain" | "espana" | "switzerland" | "suiza" | "tunisia" | "tunez" | "united states" | "estados unidos" | "uruguay" | "wales" | "gales"
+NUMBER: /[0-9]+([.,][0-9]+)?/
+%import common.INT
+%import common.ESCAPED_STRING
+%import common.WS
+%ignore WS

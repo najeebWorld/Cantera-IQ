@@ -41,3 +41,29 @@ def test_missing_database_returns_503(tmp_path, monkeypatch):
     monkeypatch.setenv("CANTERA_DB", str(tmp_path / "missing.duckdb"))
     with TestClient(app) as client:
         assert client.get("/api/players").status_code == 503
+
+
+def test_search_returns_empty_database_result_and_explicit_defaults(client):
+    response = client.post("/api/search", json={"query": "Find wingers under 23"})
+    assert response.status_code == 200
+    result = response.json()
+    assert result["status"] == "ok"
+    assert result["players"] == []
+    assert result["interpretation"]["max_age"] == 22
+    assert result["effective_min_minutes"] == 180
+    assert result["default_minutes_applied"] is True
+
+
+def test_search_asks_for_clarification_in_requested_language(client):
+    result = client.post("/api/search", json={"query": "Busca los mejores jugadores", "lang": "es"}).json()
+    assert result["status"] == "needs_clarification"
+    assert result["players"] == []
+    assert result["message"].startswith("No pude")
+
+
+@pytest.mark.parametrize("payload", [
+    {"query": ""}, {"query": "x" * 501}, {"query": "Find players", "lang": "he"},
+    {"query": "Find players", "sql": "SELECT * FROM players"},
+])
+def test_search_rejects_invalid_payloads(client, payload):
+    assert client.post("/api/search", json=payload).status_code == 422
