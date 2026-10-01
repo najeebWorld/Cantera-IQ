@@ -1,4 +1,46 @@
 :root { --ink: #202924; --muted: #65716a; --line: #dce2dd; --green: #246448; --pale: #eaf2ec; --paper: #fbfcfa; --amber: #926022; }
+.club-main { min-width: 0; }
+.club-navigation, .club-actions, .club-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; }
+.club-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); list-style: none; padding: 0; margin: 20px 0; column-gap: 32px; }
+.club-list li { border-bottom: 1px solid var(--line); }
+.club-list a { display: flex; align-items: center; gap: 16px; padding: 20px 0; text-decoration: none; }
+.club-list a:hover { color: var(--green); }
+.club-list span { flex: 1; min-width: 0; }
+.club-list strong { font-size: 20px; font-family: "Barlow Condensed", sans-serif; overflow-wrap: anywhere; }
+.club-list small { display: block; margin-top: 6px; color: var(--muted); }
+.club-pitch { height: 100px; }
+.club-field { display: flex; flex-direction: column; gap: 7px; font-size: 13px; max-width: 100%; }
+.club-field input, .club-field select, .weight-row input { font: inherit; background: white; border: 1px solid var(--line); padding: 9px 12px; border-radius: 3px; min-height: 40px; min-width: 0; max-width: 100%; }
+.club-filters { margin: 18px 0; }
+.club-filters .languages { margin-left: 0; align-self: flex-end; }
+.club-filters .languages button { width: 68px; }
+.club-table { min-width: 1250px; }
+.club-table th { white-space: normal; min-width: 88px; max-width: 150px; }
+.club-table th:first-child { min-width: 200px; }
+.club-table td { font-variant-numeric: tabular-nums; }
+.club-detail-table { min-width: 500px; }
+.club-detail-table td:first-child { width: 65%; }
+.club-detail-table p { white-space: normal; font-size: 13px; line-height: 1.6; color: var(--muted); }
+.club-settings { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--line); }
+.club-settings .club-field { width: 180px; }
+.weight-list { max-width: 740px; margin: 20px 0; }
+.weight-row { display: grid; grid-template-columns: minmax(0, 1fr) 90px 150px; gap: 20px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.weight-share { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+.weight-share meter { width: 80px; accent-color: var(--green); }
+.weight-share span { min-width: 45px; }
+.source-list { list-style: none; padding: 0; }
+.source-list li { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.source-list small, .source-list code { display: block; margin-top: 6px; font-size: 11px; overflow-wrap: anywhere; }
+.club-fit { border-top: 1px solid var(--line); margin-top: 30px; padding-top: 25px; }
+.club-fit .club-field { max-width: 350px; margin: 20px 0; }
+@media (max-width: 760px) {
+  .club-list { grid-template-columns: minmax(0, 1fr); }
+  .weight-row { grid-template-columns: minmax(0, 1fr) 80px; gap: 10px; }
+  .weight-share { grid-column: 1 / -1; }
+  .weight-share meter { width: 150px; }
+  .club-filters { align-items: stretch; }
+  .club-navigation { gap: 14px; }
+}
 .comparison-section { margin-top: 32px; padding-top: 26px; border-top: 1px solid var(--line); min-width: 0; }
 .comparison-section details { font-size: 13px; line-height: 1.6; }
 .comparison-section summary { cursor: pointer; color: var(--green); padding: 8px 0; }

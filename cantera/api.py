@@ -3,14 +3,17 @@ from pathlib import Path
 from typing import Literal
 
 import duckdb
-from fastapi import FastAPI, HTTPException, Path as ApiPath, Query
+from fastapi import FastAPI, HTTPException, Path as ApiPath, Query, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from cantera.search import explain_evidence, search
 from cantera.comparison import historical_comparison, similar_players
 from cantera.store import DEFAULT_DB, HISTORY_DB, dataset_summary, player_profile, player_table, records
+from cantera.clubs import CLUB_DB, club_dataset, club_list, club_player, club_squad
+from cantera.preferences import (PreferenceConflict, PreferenceStorageError, PreferenceUpdate,
+                                get_preferences, preference_score, save_preferences)
 
-app = FastAPI(title="Cantera IQ", version="0.4.0", description="Database-grounded search, profiles and comparisons")
+app = FastAPI(title="Cantera IQ", version="0.5.0", description="Database-grounded search, profiles, comparisons and clubs")
 
 METRIC_DEFINITIONS = {
     "shots": {
@@ -45,6 +48,117 @@ def connection() -> duckdb.DuckDBPyConnection:
     if not path.is_file():
         raise HTTPException(503, detail="Dataset unavailable. Run: python -m cantera ingest")
     return duckdb.connect(str(path), read_only=True)
+
+
+def club_connection():
+    path = Path(os.getenv("CANTERA_CLUB_DB", str(CLUB_DB)))
+    if not path.is_file():
+        raise HTTPException(503, detail="Club dataset unavailable / Datos de clubes no disponibles")
+    return duckdb.connect(str(path), read_only=True)
+
+
+def club_context(database, club_id, lang="en"):
+    clubs = club_list(database)
+    club = next((club for club in clubs if club["team_id"] == club_id), None)
+    if club is None:
+        raise HTTPException(404, detail="Club not found" if lang == "en" else "Club no encontrado")
+    return club, {club["team_id"] for club in clubs}
+
+
+def preferences_operation(operation, *args):
+    try:
+        return operation(*args)
+    except PreferenceConflict as error:
+        raise HTTPException(409, detail="Preferences changed; reload / Preferencias modificadas; recarga") from error
+    except PreferenceStorageError as error:
+        raise HTTPException(503, detail="Preferences unavailable / Preferencias no disponibles") from error
+
+
+def club_evidence(lang):
+    return (
+        "La Liga 2015/16: union of observed match rosters, not a current or complete registered squad. "
+        "Age, percentiles, radar and preference scores are unavailable without verified birth-date coverage. "
+        "Totals and per90 describe only this club's observations. Zero minutes means per90 is unavailable.",
+        "La Liga 2015/16: union de convocatorias observadas, no plantilla actual ni registro completo. "
+        "Edad, percentiles, radar e indices no disponibles sin fechas de nacimiento verificadas. "
+        "Totales y datos por 90 solo de este club. Sin minutos, los datos por 90 no estan disponibles."
+    )[lang == "es"]
+
+
+@app.get("/api/clubs")
+def clubs(lang: Literal["en", "es"] = "en"):
+    with club_connection() as database:
+        return {"clubs": club_list(database), "dataset": club_dataset(database), "language": lang,
+                "evidence": club_evidence(lang)}
+
+
+@app.get("/api/clubs/{club_id}/players")
+def squad(club_id: int = ApiPath(ge=1, le=9223372036854775807), lang: Literal["en", "es"] = "en"):
+    with club_connection() as database:
+        club, _ = club_context(database, club_id, lang)
+        return {"club": club, "players": club_squad(database, club_id), "dataset": club_dataset(database),
+                "language": lang, "evidence": club_evidence(lang)}
+
+
+@app.get("/api/clubs/{club_id}/players/{player_id}")
+def club_profile(club_id: int = ApiPath(ge=1, le=9223372036854775807),
+                 player_id: int = ApiPath(ge=1, le=9223372036854775807), lang: Literal["en", "es"] = "en"):
+    with club_connection() as database:
+        club, _ = club_context(database, club_id, lang)
+        player = club_player(database, club_id, player_id)
+        if player is None:
+            raise HTTPException(404, detail="Player not observed at this club" if lang == "en" else "Jugador no observado en este club")
+        for metric in player["metrics"]:
+            metric["definition"] = METRIC_DEFINITIONS[metric["metric"]][lang]
+        return {"club": club, "player": player, "dataset": club_dataset(database), "language": lang,
+                "radar_available": False, "fit_available": False, "evidence": club_evidence(lang)}
+
+
+@app.get("/api/clubs/{club_id}/profile")
+def club_preferences(club_id: int = ApiPath(ge=1, le=9223372036854775807)):
+    with club_connection() as database:
+        club, allowed = club_context(database, club_id)
+    return {"club": club, **preferences_operation(get_preferences, club_id, allowed)}
+
+
+@app.put("/api/clubs/{club_id}/profile")
+def update_club_preferences(update: PreferenceUpdate, request: Request,
+                            club_id: int = ApiPath(ge=1, le=9223372036854775807)):
+    origin = request.headers.get("origin")
+    allowed_origin = os.getenv("CANTERA_FRONTEND_ORIGIN", "http://127.0.0.1:3002")
+    if origin != allowed_origin or request.headers.get("sec-fetch-site") == "cross-site":
+        raise HTTPException(403, detail="Local frontend origin required / Se requiere el origen local")
+    if request.headers.get("content-type", "").split(";")[0].strip().lower() != "application/json":
+        raise HTTPException(415, detail="JSON required / Se requiere JSON")
+    with club_connection() as database:
+        club, allowed = club_context(database, club_id)
+    return {"club": club, **preferences_operation(save_preferences, club_id, update, allowed)}
+
+
+@app.get("/api/players/{player_id}/club-fit")
+def club_fit(player_id: int = ApiPath(ge=1, le=9223372036854775807),
+             club_id: int = Query(ge=1, le=9223372036854775807), lang: Literal["en", "es"] = "en"):
+    with club_connection() as database:
+        club, allowed = club_context(database, club_id, lang)
+    preferences = preferences_operation(get_preferences, club_id, allowed)
+    with connection() as database:
+        player = player_profile(database, player_id)
+        if player is None:
+            raise HTTPException(404, detail="Player not found" if lang == "en" else "Jugador no encontrado")
+        scope = database.execute("SELECT DISTINCT competition, season FROM matches").fetchall()
+        result = preference_score(player, preferences, scope == [("FIFA World Cup", "2022")])
+        result["dataset"] = dataset_summary(database)
+    reasons = {**COMPARISON_REASONS, "preferences_unsaved": ("Save this club's preferences first.", "Guarda primero las preferencias del club.")}
+    return {**result, "club": club, "language": lang,
+            "explanation": reasons[result["reason"]][lang == "es"] if result["reason"] else None,
+            "methodology": (
+                "User-configured club preferences applied to World Cup 2022 percentiles, not club performance or membership. "
+                "Index = sum(weight * percentile) / sum(weights). Zero weight excludes a metric; missing weighted evidence withholds the index. "
+                "Not a percentile, probability, talent grade or forecast. Only meaningful within the existing tournament, position and age cohort. Shots and npxG overlap.",
+                "Preferencias del usuario aplicadas a percentiles del Mundial 2022, no rendimiento ni pertenencia al club. "
+                "Indice = suma(peso * percentil) / suma(pesos). Peso cero excluye la metrica; evidencia ponderada ausente impide el indice. "
+                "No es percentil, probabilidad, nota de talento ni prediccion. Solo dentro del mismo torneo, posicion y edad. Tiros y npxG se solapan."
+            )[lang == "es"]}
 
 
 COMPARISON_REASONS = {

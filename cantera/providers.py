@@ -130,10 +130,12 @@ def normalize_event(raw: dict[str, Any], match_id: int) -> dict[str, Any]:
 
 
 class StatsBombOpenData:
-    def __init__(self, cache: SourceCache, competition_id: int = 43, season_id: int = 106):
+    def __init__(self, cache: SourceCache, competition_id: int = 43, season_id: int = 106,
+                 allow_boundary_annotations: bool = False):
         self.cache = cache
         self.competition_id = competition_id
         self.season_id = season_id
+        self.allow_boundary_annotations = allow_boundary_annotations
 
     def matches(self) -> Iterator[MatchBundle]:
         schedule = json.loads(self.cache.fetch(
@@ -149,7 +151,7 @@ class StatsBombOpenData:
         raw_events = json.loads(event_bytes)
         if len({event["id"] for event in raw_events}) != len(raw_events):
             raise ValueError(f"Duplicate event identifiers in {match_id}")
-        stints, duration = playing_stints(raw_events)
+        stints, duration = playing_stints(raw_events, allow_boundary_annotations=self.allow_boundary_annotations)
         dataset = statsbomb.load(event_data=io.BytesIO(event_bytes), lineup_data=io.BytesIO(lineup_bytes),
                                  event_types=["shot", "pass", "take_on", "duel"])
         supported = {"Shot", "Pass", "Dribble", "Duel"}

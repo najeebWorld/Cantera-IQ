@@ -1,6 +1,6 @@
 # Cantera IQ
 
-Working stages 1-4 prototype: StatsBomb Open Data -> replaceable provider -> isolated DuckDB snapshots -> read-only FastAPI -> English/Spanish Next.js search, player profiles, similarity and historical tournament comparisons. Stage 2 uses a constrained local grammar, not an LLM or unrestricted language understanding.
+Working stages 1-5 prototype: StatsBomb Open Data -> replaceable provider -> isolated DuckDB samples -> FastAPI -> English/Spanish Next.js search, player profiles, comparisons and historical club squads. Analytics remain read-only; user-configured club preferences are saved separately. Stage 2 uses a constrained local grammar, not an LLM or unrestricted language understanding.
 
 ## Run
 
@@ -11,6 +11,7 @@ python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 .venv/bin/python -m cantera ingest
 .venv/bin/python -m cantera ingest-history
+.venv/bin/python -m cantera ingest-clubs
 .venv/bin/python -m cantera coverage
 .venv/bin/python -m cantera sample
 .venv/bin/python -m cantera export
@@ -40,7 +41,7 @@ Open http://127.0.0.1:3002. The Next.js server proxies API requests to port 8001
 - `POST /api/search`: JSON `{ "query": "Find wingers aged 23 or younger sorted by successful dribbles per 90", "lang": "en" }`. Returns interpretation, dataset context, results and evidence, or `needs_clarification` without executing a player search.
 - `CANTERA_DB`: optional database path for the API; CLI uses `--db`.
 
-The API has no arbitrary SQL or write endpoint. It opens a fresh read-only database connection per request. Bind locally only; authentication and public deployment are not part of this prototype.
+The API has no arbitrary SQL endpoint. Analytics connections are read-only; the only mutation saves validated club preferences to a separate JSON file. Run one API worker on loopback only. Preference saves require JSON and an exact `Origin` matching `CANTERA_FRONTEND_ORIGIN` (default `http://127.0.0.1:3002`); cross-site browser requests are rejected. Set that variable when using a different local frontend origin. This is not authentication or public-hosting security.
 
 ## Outputs
 
@@ -49,6 +50,7 @@ The API has no arbitrary SQL or write endpoint. It opens a fresh read-only datab
 - [Data dictionary and methodology](docs/DATA-REFERENCE.md).
 - [Search contract, examples, limits and review](docs/SEARCH.md).
 - [Stage 4 comparison contract and verification](docs/COMPARISON.md).
+- [Stage 5 clubs, preferences and verification](docs/CLUB-PROFILE.md).
 - [Data-source research and scope decision](docs/DATA-SOURCES.md).
 
 The import uses all 64 matches of the men's World Cup 2022, not the entire StatsBomb repository. Player ages are at 2022-11-20. The team field is the national team in the observed matches, not a current club. The sample is ordered by minutes, not talent. These are historical first-team observations, not academy coverage.
@@ -65,7 +67,7 @@ Implementation: `cantera.store.player_profile` reads `player_summary` and `playe
 
 ## Boundaries
 
-Search supports a documented English/Spanish grammar for position, age, national team, minimum minutes, one metric, numeric thresholds and descending order. Unsupported language, qualitative potential, tracking speed and conflicting requests require clarification. Stage 4 implements the approved WC2018/WC2022 snapshot scope, not continuous seasons or a development forecast. No composite talent score, club weighting or recommendations. kloppy is used for event parsing; socceraction is not needed yet. The interactive radar uses Chart.js; mplsoccer is not installed. Stages 5-6 require separate approval.
+Search supports a documented English/Spanish grammar for position, age, national team, minimum minutes, one metric, numeric thresholds and descending order. Unsupported language, qualitative potential, tracking speed and conflicting requests require clarification. Stage 4 implements WC2018/WC2022 snapshots, not continuous development. Stage 5 adds a separate preference index, not a talent score or recommendation, and does not change search, cohorts or similarity. kloppy parses events; Chart.js renders the radar. Stage 6 still requires approval.
 
 Profiles now include up to five similar players, expandable paired metrics, and same-player historical totals/per90 with changes when both tournaments have sufficient minutes. All 64 matches per tournament are isolated in separate databases; 2018 has 736 roster players, 604 active players and 96 players with >=180 minutes in both samples. Historical age-cohort percentiles are withheld because full birth-date coverage is unavailable. Verified 2022 birth-date provenance is reused for paired display only after matching StatsBomb ID and normalized name. The original 2022 file and search defaults remain unchanged.
 
@@ -75,7 +77,7 @@ Only one competition-season per database is supported. Provider replacement uses
 
 Tests cover stoppage time, half-time substitutions, extra time, temporary exits, red cards, tactical changes, shootout exclusion, birth-date boundaries, tied percentiles, cohort isolation, insufficient samples, API validation, atomic import failure and repeat imports. With both snapshots imported, tests reconcile all six metrics in all 128 matches against checksummed raw data and check interval overlap and team-minute bounds.
 
-124 Python tests pass, including similarity distances, snapshot isolation, identity conflicts and historical evidence. Fourteen Playwright cases cover actual database search, profiles, comparisons, calculations, English/Spanish, clarification, empty results, unavailable API/retry, unknown players, return-to-search context, image availability and desktop/mobile page overflow. Profile tests compare displayed metrics with the API and verify nonblank radar pixels; missing percentiles must render no canvas. Desktop/mobile screenshots were visually inspected and are saved under `web/test-results/`. Lint and production build pass.
+135 Python tests pass, including independent reconciliation of six metrics across all 508 imported matches, club/player isolation, atomic preferences and revision conflicts. Twenty Playwright cases pass with isolated preference storage: search, profiles, comparisons, club squads, saved preferences, missing evidence, retries and bilingual navigation on desktop/mobile. World Cup files remain byte-identical. Screenshots were visually inspected under `web/test-results/`; existing radar tests verify nonblank pixels. Lint and production build pass.
 
 With both servers and the imported dataset available:
 
@@ -88,6 +90,26 @@ npm run build
 ```
 
 Known dependency warning: Starlette's TestClient emits a deprecation warning for its httpx integration; tests pass. This is a local prototype, not a publicly deployed or authenticated service.
+
+## Clubs And Preferences
+
+Open http://127.0.0.1:3002/clubs. The La Liga 2015/16 demo contains 20 clubs, 380 matches and 601 distinct roster players, from 761 checksummed sources. Squads are unions of observed match rosters, not current or complete registered squads. Totals/per90 and minutes are grouped by club AND player; zero minutes gives unavailable rates. Historical age, percentiles, radar and fit remain unavailable without verified birth dates.
+
+Each club has independent weights for seven outfield position groups. Equal defaults are not saved and make no claim about real tactics. Saves use per-club revisions; reset changes the draft only. On a World Cup 2022 player profile, the separate club selector applies saved preferences to eligible existing percentiles, with individual contributions and missing-evidence explanations. No historical club membership is inferred.
+
+- `GET /api/clubs`, `/api/clubs/{club_id}/players`, `/api/clubs/{club_id}/players/{player_id}`: club list, squad and historical detail/provenance; support `lang=en|es`.
+- `GET` and `PUT /api/clubs/{club_id}/profile`: preferences; PUT body is `{ "revision": 0, "weights": { ... } }` with every supported position/metric key.
+- `GET /api/players/{player_id}/club-fit?club_id=...&lang=en`: explained WC2022 preference index or unavailable reason.
+- `CANTERA_CLUB_DB`: defaults to `data/cantera-clubs-2015-16.duckdb`; CLI also accepts `--db` with World Cup destination protections.
+- `CANTERA_CLUB_PROFILES`: defaults to `data/club-profiles.json`. Keep backups; malformed files are never silently reset. One API process only.
+
+Browser mutation tests deliberately skip without an isolated API. In an additional terminal, start:
+
+```bash
+CANTERA_CLUB_PROFILES="$(mktemp -d)/profiles.json" .venv/bin/python -m uvicorn cantera.api:app --host 127.0.0.1 --port 8003
+```
+
+Then run `CANTERA_CLUB_TEST_API=http://127.0.0.1:8003 npm test` from `web`. This exercises real saves without modifying normal preferences. Stop the temporary API after testing. Both regular servers and all three imported datasets must be available.
 
 ## Data Terms
 
