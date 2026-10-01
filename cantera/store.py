@@ -25,6 +25,19 @@ def player_table(connection: duckdb.DuckDBPyConnection, max_age: int = 23,
     return rows
 
 
+def player_profile(connection: duckdb.DuckDBPyConnection, player_id: int) -> dict[str, Any] | None:
+    players = records(connection, "SELECT * FROM player_summary WHERE player_id = ?", [player_id])
+    if not players:
+        return None
+    player = players[0]
+    player["display_name"] = player["display_name"] or player["name"]
+    player["metrics"] = records(connection, """
+        SELECT metric, total, per90, percentile, peer_count, evidence_status
+        FROM player_metrics WHERE player_id = ? ORDER BY metric
+    """, [player_id])
+    return player
+
+
 def append_rows(connection: duckdb.DuckDBPyConnection, table: str, rows: list[dict[str, Any]]) -> None:
     if table not in {"matches", "players", "stints", "events", "sources"}:
         raise ValueError("Unknown import table")

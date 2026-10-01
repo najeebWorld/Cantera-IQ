@@ -3,7 +3,7 @@ from datetime import date
 import duckdb
 import pytest
 
-from cantera.store import SCHEMA, player_table, records
+from cantera.store import SCHEMA, player_profile, player_table, records
 from cantera.search import SearchPlan, execute_search, search
 
 
@@ -114,3 +114,31 @@ def test_quoted_team_cannot_inject_sql(database):
     assert database.execute("SELECT count(*) FROM players").fetchone()[0] == 11
     valid = search(database, 'Find players from "Team"')
     assert valid["interpretation"]["team"] == "Team"
+
+
+def test_profile_matches_full_cohort_metrics(database):
+    profile = player_profile(database, 2)
+    assert profile["display_name"] == "Player 2"
+    assert profile["minutes"] == 200
+    assert profile["metrics"] == records(database, """
+        SELECT metric, total, per90, percentile, peer_count, evidence_status
+        FROM player_metrics WHERE player_id = 2 ORDER BY metric
+    """)
+    assert len(profile["metrics"]) == 6
+    assert next(metric for metric in profile["metrics"] if metric["metric"] == "shots")["percentile"] == 30
+
+
+@pytest.mark.parametrize("identifier,reason", [(7, "insufficient_minutes"), (8, "insufficient_peers"),
+                                             (9, "missing_birth_date"), (11, "no_minutes")])
+def test_profile_keeps_missing_percentiles_and_evidence(database, identifier, reason):
+    profile = player_profile(database, identifier)
+    assert all(metric["percentile"] is None for metric in profile["metrics"])
+    assert all(metric["evidence_status"] == reason for metric in profile["metrics"])
+    if identifier == 11:
+        assert all(metric["per90"] is None for metric in profile["metrics"])
+
+
+def test_profile_preserves_zero_percentiles_and_unknown_player(database):
+    profile = player_profile(database, 1)
+    assert next(metric for metric in profile["metrics"] if metric["metric"] == "shots")["percentile"] == 0
+    assert player_profile(database, 9999) is None

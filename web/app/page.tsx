@@ -3,10 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowDown, ArrowRight, Check, ChevronDown, CircleAlert, Database, LoaderCircle, Search, SlidersHorizontal } from "lucide-react";
+import { EVIDENCE, METRICS, type Evidence, type Language, type Metric } from "./labels";
 
-type Language = "en" | "es";
-type Metric = "shots" | "npxg" | "key_passes" | "completed_passes" | "successful_dribbles" | "tackles_won";
-type Evidence = "no_minutes" | "missing_birth_date" | "insufficient_minutes" | "insufficient_peers" | "limited_sample" | "moderate_sample";
 type Player = {
   player_id: number; display_name: string; team: string; position: string; age: number | null;
   minutes: number; per90: number | null; percentile: number | null; total: number | null;
@@ -64,14 +62,6 @@ const COPY = {
     queries: [DEFAULT_QUERY.es, "Busca delanteros hasta 23 anos ordenados por npxg", "Busca jugadores de Francia ordenados por pases clave"],
   },
 };
-const METRICS: Record<Language, Record<Metric, string>> = {
-  en: { shots: "Non-penalty shots", npxg: "Non-penalty xG", key_passes: "Key passes", completed_passes: "Completed passes", successful_dribbles: "Successful dribbles", tackles_won: "Tackles won" },
-  es: { shots: "Tiros sin penalti", npxg: "xG sin penalti", key_passes: "Pases clave", completed_passes: "Pases completados", successful_dribbles: "Regates exitosos", tackles_won: "Entradas ganadas" },
-};
-const EVIDENCE: Record<Language, Record<Evidence, string>> = {
-  en: { no_minutes: "No minutes", missing_birth_date: "Age unavailable", insufficient_minutes: "Insufficient minutes", insufficient_peers: "Insufficient peers", limited_sample: "Limited sample", moderate_sample: "Moderate sample" },
-  es: { no_minutes: "Sin minutos", missing_birth_date: "Edad no disponible", insufficient_minutes: "Minutos insuficientes", insufficient_peers: "Pares insuficientes", limited_sample: "Muestra limitada", moderate_sample: "Muestra moderada" },
-};
 
 async function requestSearch(query: string, lang: Language, signal: AbortSignal): Promise<ResponseData> {
   const response = await fetch("/api/search", {
@@ -94,6 +84,7 @@ export default function Home() {
   const text = COPY[language];
 
   async function performSearch(request: string, lang: Language) {
+    window.history.replaceState(null, "", `/?${new URLSearchParams({ q: request, lang })}`);
     active.current?.abort();
     const controller = new AbortController();
     active.current = controller;
@@ -122,14 +113,27 @@ export default function Home() {
 
   useEffect(() => {
     document.documentElement.lang = language;
+  }, [language]);
+
+  useEffect(() => {
+    const parameters = new URLSearchParams(window.location.search);
+    const initialLanguage = parameters.get("lang") === "es" ? "es" : "en";
+    const initialQuery = parameters.get("q") || DEFAULT_QUERY[initialLanguage];
     const controller = new AbortController();
     active.current = controller;
-    requestSearch(DEFAULT_QUERY[language], language, controller.signal)
+    requestSearch(initialQuery, initialLanguage, controller.signal)
       .then(data => { if (!controller.signal.aborted) setResult(data); })
       .catch(() => { if (!controller.signal.aborted) setFailed(true); })
-      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
-    return () => controller.abort();
-  }, [language]);
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setLanguage(initialLanguage);
+          setQuery(initialQuery);
+          setSubmitted(initialQuery);
+          setLoading(false);
+        }
+      });
+    return () => active.current?.abort();
+  }, []);
 
   const data = result?.status === "ok" ? result : null;
   const plan = data?.interpretation;
@@ -142,7 +146,7 @@ export default function Home() {
       <span className="workspace-label">{text.workspace}</span>
       <div className="languages" role="group" aria-label={text.language}>
         {(["en", "es"] as const).map(lang => <button key={lang} type="button" aria-pressed={language === lang}
-          onClick={() => { if (lang !== language) { prepareSearch(DEFAULT_QUERY[lang]); setQuery(DEFAULT_QUERY[lang]); setLanguage(lang); } }}> {lang.toUpperCase()} </button>)}
+          onClick={() => { if (lang !== language) { prepareSearch(DEFAULT_QUERY[lang]); setQuery(DEFAULT_QUERY[lang]); setLanguage(lang); void performSearch(DEFAULT_QUERY[lang], lang); } }}> {lang.toUpperCase()} </button>)}
       </div>
     </header>
 
@@ -207,7 +211,7 @@ export default function Home() {
             <div className="table-scroll" tabIndex={0} role="region" aria-label={text.results}>
               <table><thead><tr><th>#</th><th>{text.player}</th><th>{text.age}</th><th>{text.position}</th><th>{text.minutes}</th>
                 <th className={plan.sort_by === "per90" ? "sorted" : ""}>{text.per90}</th><th className={plan.sort_by === "percentile" ? "sorted" : ""}>{text.percentile}</th><th>{text.evidence}</th><th><span className="sr-only">{text.details}</span></th></tr></thead>
-                <tbody>{data.players.map((player, index) => <PlayerRows key={player.player_id} player={player} index={index} language={language} format={format}
+                <tbody>{data.players.map((player, index) => <PlayerRows key={player.player_id} player={player} index={index} language={language} format={format} query={submitted}
                   expanded={expanded === player.player_id} toggle={() => setExpanded(expanded === player.player_id ? null : player.player_id)} />)}</tbody>
               </table>
             </div>}
@@ -219,13 +223,13 @@ export default function Home() {
   </div>;
 }
 
-function PlayerRows({ player, index, language, format, expanded, toggle }: {
+function PlayerRows({ player, index, language, format, expanded, toggle, query }: {
   player: Player; index: number; language: Language; format: (value: number | null, digits?: number) => string;
-  expanded: boolean; toggle: () => void;
+  expanded: boolean; toggle: () => void; query: string;
 }) {
   const text = COPY[language];
   return <><tr className={expanded ? "expanded" : ""}>
-    <td className="row-number">{String(index + 1).padStart(2, "0")}</td><td><strong>{player.display_name}</strong><span className="team-name">{player.team}</span></td>
+    <td className="row-number">{String(index + 1).padStart(2, "0")}</td><td><Link className="player-link" href={`/players/${player.player_id}?${new URLSearchParams({ lang: language, q: query })}`}><strong>{player.display_name}</strong></Link><span className="team-name">{player.team}</span></td>
     <td>{format(player.age, 0)}</td><td><span className="position">{player.position}</span></td><td>{format(player.minutes)}</td>
     <td className="metric-value">{format(player.per90, 2)}</td><td><div className="percentile-value" title={player.percentile === null ? text.unavailable : `${player.peer_count} ${text.peers}`}>
       <span>{format(player.percentile, 0)}</span>{player.percentile !== null && <span className="percentile-track"><span style={{ width: `${player.percentile}%` }} /></span>}
