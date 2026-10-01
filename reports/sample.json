@@ -1,0 +1,723 @@
+{
+  "selection": "Ten age <=23 players with most minutes; not a talent ranking",
+  "dataset": {
+    "matches": 64,
+    "raw_events": 234637,
+    "metric_events": 76150,
+    "players": 829,
+    "active_players": 680,
+    "missing_birth_dates": 0,
+    "young_players": 143,
+    "start_date": "2022-11-20",
+    "end_date": "2022-12-18",
+    "sources": 130,
+    "reference_date": "2022-11-20",
+    "min_minutes": 180.0,
+    "min_peers": 5,
+    "stronger_minutes": 450.0,
+    "stronger_peers": 10,
+    "methodology_version": "stage1-v1"
+  },
+  "players": [
+    {
+      "player_id": 33018,
+      "name": "Joško Gvardiol",
+      "display_name": "Joško Gvardiol",
+      "team_id": 785,
+      "team": "Croatia",
+      "shirt_number": 20,
+      "birth_date": "2002-01-23",
+      "birth_source_name": "GVARDIOL Josko",
+      "birth_source_url": "https://fdp.fifa.org/assetspublic/ce44/pdf/SquadLists-English.pdf",
+      "birth_source_sha256": "2a75fb43fb871564ef040c1e81f9260c85b6a9ea7fc3b7c68cd5723d6de7e874",
+      "birth_match_method": "tournament+team+shirt_number",
+      "reference_date": "2022-11-20",
+      "age": 20,
+      "position": "CB",
+      "minutes": 754.5184833333334,
+      "appearances": 7,
+      "main_position_share": 1.0,
+      "age_band": "20-23",
+      "metrics": [
+        {
+          "metric": "completed_passes",
+          "total": 463.0,
+          "per90": 55.22727530266599,
+          "percentile": 87.5,
+          "peer_count": 9,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "key_passes",
+          "total": 1.0,
+          "per90": 0.11928137214398701,
+          "percentile": 87.5,
+          "peer_count": 9,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "npxg",
+          "total": 0.186105118,
+          "per90": 0.022198873838058616,
+          "percentile": 37.5,
+          "peer_count": 9,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "shots",
+          "total": 2.0,
+          "per90": 0.23856274428797403,
+          "percentile": 50.0,
+          "peer_count": 9,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "successful_dribbles",
+          "total": 2.0,
+          "per90": 0.23856274428797403,
+          "percentile": 75.0,
+          "peer_count": 9,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "tackles_won",
+          "total": 11.0,
+          "per90": 1.3120950935838571,
+          "percentile": 62.5,
+          "peer_count": 9,
+          "evidence_status": "limited_sample"
+        }
+      ]
+    },
+    {
+      "player_id": 10481,
+      "name": "Aurélien Djani Tchouaméni",
+      "display_name": "Aurélien Tchouaméni",
+      "team_id": 771,
+      "team": "France",
+      "shirt_number": 8,
+      "birth_date": "2000-01-27",
+      "birth_source_name": "TCHOUAMENI Aurelien",
+      "birth_source_url": "https://fdp.fifa.org/assetspublic/ce44/pdf/SquadLists-English.pdf",
+      "birth_source_sha256": "2a75fb43fb871564ef040c1e81f9260c85b6a9ea7fc3b7c68cd5723d6de7e874",
+      "birth_match_method": "tournament+team+shirt_number",
+      "reference_date": "2022-11-20",
+      "age": 22,
+      "position": "DM",
+      "minutes": 700.8519666666667,
+      "appearances": 7,
+      "main_position_share": 0.9930094605332489,
+      "age_band": "20-23",
+      "metrics": [
+        {
+          "metric": "completed_passes",
+          "total": 431.0,
+          "per90": 55.34692323757004,
+          "percentile": 71.42857142857143,
+          "peer_count": 8,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "key_passes",
+          "total": 6.0,
+          "per90": 0.7704908107318336,
+          "percentile": 100.0,
+          "peer_count": 8,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "npxg",
+          "total": 0.39939709799999995,
+          "per90": 0.051288632306993584,
+          "percentile": 71.42857142857143,
+          "peer_count": 8,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "shots",
+          "total": 6.0,
+          "per90": 0.7704908107318336,
+          "percentile": 57.142857142857146,
+          "peer_count": 8,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "successful_dribbles",
+          "total": 2.0,
+          "per90": 0.2568302702439445,
+          "percentile": 14.285714285714286,
+          "peer_count": 8,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "tackles_won",
+          "total": 4.0,
+          "per90": 0.513660540487889,
+          "percentile": 0.0,
+          "peer_count": 8,
+          "evidence_status": "limited_sample"
+        }
+      ]
+    },
+    {
+      "player_id": 3009,
+      "name": "Kylian Mbappé Lottin",
+      "display_name": "Kylian Mbappé",
+      "team_id": 771,
+      "team": "France",
+      "shirt_number": 10,
+      "birth_date": "1998-12-20",
+      "birth_source_name": "MBAPPE Kylian",
+      "birth_source_url": "https://fdp.fifa.org/assetspublic/ce44/pdf/SquadLists-English.pdf",
+      "birth_source_sha256": "2a75fb43fb871564ef040c1e81f9260c85b6a9ea7fc3b7c68cd5723d6de7e874",
+      "birth_match_method": "tournament+team+shirt_number",
+      "reference_date": "2022-11-20",
+      "age": 23,
+      "position": "W",
+      "minutes": 690.4695333333333,
+      "appearances": 7,
+      "main_position_share": 0.7888732575504417,
+      "age_band": "20-23",
+      "metrics": [
+        {
+          "metric": "completed_passes",
+          "total": 180.0,
+          "per90": 23.46229517440451,
+          "percentile": 47.05882352941177,
+          "peer_count": 18,
+          "evidence_status": "moderate_sample"
+        },
+        {
+          "metric": "key_passes",
+          "total": 9.0,
+          "per90": 1.1731147587202255,
+          "percentile": 47.05882352941177,
+          "peer_count": 18,
+          "evidence_status": "moderate_sample"
+        },
+        {
+          "metric": "npxg",
+          "total": 2.666251877000001,
+          "per90": 0.3475354919304672,
+          "percentile": 94.11764705882354,
+          "peer_count": 18,
+          "evidence_status": "moderate_sample"
+        },
+        {
+          "metric": "shots",
+          "total": 29.0,
+          "per90": 3.7800364447651713,
+          "percentile": 100.0,
+          "peer_count": 18,
+          "evidence_status": "moderate_sample"
+        },
+        {
+          "metric": "successful_dribbles",
+          "total": 30.0,
+          "per90": 3.9103825290674186,
+          "percentile": 100.0,
+          "peer_count": 18,
+          "evidence_status": "moderate_sample"
+        },
+        {
+          "metric": "tackles_won",
+          "total": 0.0,
+          "per90": 0.0,
+          "percentile": 2.9411764705882355,
+          "peer_count": 18,
+          "evidence_status": "moderate_sample"
+        }
+      ]
+    },
+    {
+      "player_id": 38718,
+      "name": "Enzo Fernandez",
+      "display_name": "Enzo Fernandez",
+      "team_id": 779,
+      "team": "Argentina",
+      "shirt_number": 24,
+      "birth_date": "2001-01-17",
+      "birth_source_name": "FERNANDEZ Enzo",
+      "birth_source_url": "https://fdp.fifa.org/assetspublic/ce44/pdf/SquadLists-English.pdf",
+      "birth_source_sha256": "2a75fb43fb871564ef040c1e81f9260c85b6a9ea7fc3b7c68cd5723d6de7e874",
+      "birth_match_method": "tournament+team+shirt_number",
+      "reference_date": "2022-11-20",
+      "age": 21,
+      "position": "DM",
+      "minutes": 646.5723,
+      "appearances": 7,
+      "main_position_share": 0.8308981841628537,
+      "age_band": "20-23",
+      "metrics": [
+        {
+          "metric": "completed_passes",
+          "total": 416.0,
+          "per90": 57.90535721991183,
+          "percentile": 100.0,
+          "peer_count": 8,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "key_passes",
+          "total": 5.0,
+          "per90": 0.6959778512008633,
+          "percentile": 85.71428571428571,
+          "peer_count": 8,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "npxg",
+          "total": 0.267128615,
+          "per90": 0.03718311989239254,
+          "percentile": 57.142857142857146,
+          "peer_count": 8,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "shots",
+          "total": 8.0,
+          "per90": 1.1135645619213814,
+          "percentile": 85.71428571428571,
+          "peer_count": 8,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "successful_dribbles",
+          "total": 3.0,
+          "per90": 0.417586710720518,
+          "percentile": 57.142857142857146,
+          "peer_count": 8,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "tackles_won",
+          "total": 13.0,
+          "per90": 1.8095424131222446,
+          "percentile": 71.42857142857143,
+          "peer_count": 8,
+          "evidence_status": "limited_sample"
+        }
+      ]
+    },
+    {
+      "player_id": 46258,
+      "name": "Azzedine Ounahi",
+      "display_name": "Azzedine Ounahi",
+      "team_id": 788,
+      "team": "Morocco",
+      "shirt_number": 8,
+      "birth_date": "2000-04-19",
+      "birth_source_name": "OUNAHI Azzedine",
+      "birth_source_url": "https://fdp.fifa.org/assetspublic/ce44/pdf/SquadLists-English.pdf",
+      "birth_source_sha256": "2a75fb43fb871564ef040c1e81f9260c85b6a9ea7fc3b7c68cd5723d6de7e874",
+      "birth_match_method": "tournament+team+shirt_number",
+      "reference_date": "2022-11-20",
+      "age": 22,
+      "position": "CM",
+      "minutes": 614.2450333333331,
+      "appearances": 7,
+      "main_position_share": 0.8446611778328857,
+      "age_band": "20-23",
+      "metrics": [
+        {
+          "metric": "completed_passes",
+          "total": 221.0,
+          "per90": 32.381214207077306,
+          "percentile": null,
+          "peer_count": 2,
+          "evidence_status": "insufficient_peers"
+        },
+        {
+          "metric": "key_passes",
+          "total": 6.0,
+          "per90": 0.8791279875224608,
+          "percentile": null,
+          "peer_count": 2,
+          "evidence_status": "insufficient_peers"
+        },
+        {
+          "metric": "npxg",
+          "total": 0.24470047899999997,
+          "per90": 0.03585383994150869,
+          "percentile": null,
+          "peer_count": 2,
+          "evidence_status": "insufficient_peers"
+        },
+        {
+          "metric": "shots",
+          "total": 6.0,
+          "per90": 0.8791279875224608,
+          "percentile": null,
+          "peer_count": 2,
+          "evidence_status": "insufficient_peers"
+        },
+        {
+          "metric": "successful_dribbles",
+          "total": 10.0,
+          "per90": 1.4652133125374347,
+          "percentile": null,
+          "peer_count": 2,
+          "evidence_status": "insufficient_peers"
+        },
+        {
+          "metric": "tackles_won",
+          "total": 5.0,
+          "per90": 0.7326066562687173,
+          "percentile": null,
+          "peer_count": 2,
+          "evidence_status": "insufficient_peers"
+        }
+      ]
+    },
+    {
+      "player_id": 27886,
+      "name": "Alexis Mac Allister",
+      "display_name": "Alexis MacAllister",
+      "team_id": 779,
+      "team": "Argentina",
+      "shirt_number": 20,
+      "birth_date": "1998-12-24",
+      "birth_source_name": "MAC ALLISTER Alexis",
+      "birth_source_url": "https://fdp.fifa.org/assetspublic/ce44/pdf/SquadLists-English.pdf",
+      "birth_source_sha256": "2a75fb43fb871564ef040c1e81f9260c85b6a9ea7fc3b7c68cd5723d6de7e874",
+      "birth_match_method": "tournament+team+shirt_number",
+      "reference_date": "2022-11-20",
+      "age": 23,
+      "position": "CM",
+      "minutes": 603.2831833333332,
+      "appearances": 6,
+      "main_position_share": 0.6867536309855149,
+      "age_band": "20-23",
+      "metrics": [
+        {
+          "metric": "completed_passes",
+          "total": 242.0,
+          "per90": 36.10244840517269,
+          "percentile": null,
+          "peer_count": 2,
+          "evidence_status": "insufficient_peers"
+        },
+        {
+          "metric": "key_passes",
+          "total": 7.0,
+          "per90": 1.0442856976702843,
+          "percentile": null,
+          "peer_count": 2,
+          "evidence_status": "insufficient_peers"
+        },
+        {
+          "metric": "npxg",
+          "total": 0.5018383630000001,
+          "per90": 0.07486608928902408,
+          "percentile": null,
+          "peer_count": 2,
+          "evidence_status": "insufficient_peers"
+        },
+        {
+          "metric": "shots",
+          "total": 7.0,
+          "per90": 1.0442856976702843,
+          "percentile": null,
+          "peer_count": 2,
+          "evidence_status": "insufficient_peers"
+        },
+        {
+          "metric": "successful_dribbles",
+          "total": 5.0,
+          "per90": 0.7459183554787746,
+          "percentile": null,
+          "peer_count": 2,
+          "evidence_status": "insufficient_peers"
+        },
+        {
+          "metric": "tackles_won",
+          "total": 7.0,
+          "per90": 1.0442856976702843,
+          "percentile": null,
+          "peer_count": 2,
+          "evidence_status": "insufficient_peers"
+        }
+      ]
+    },
+    {
+      "player_id": 29560,
+      "name": "Julián Álvarez",
+      "display_name": "Julián Álvarez",
+      "team_id": 779,
+      "team": "Argentina",
+      "shirt_number": 9,
+      "birth_date": "2000-01-31",
+      "birth_source_name": "ALVAREZ Julian",
+      "birth_source_url": "https://fdp.fifa.org/assetspublic/ce44/pdf/SquadLists-English.pdf",
+      "birth_source_sha256": "2a75fb43fb871564ef040c1e81f9260c85b6a9ea7fc3b7c68cd5723d6de7e874",
+      "birth_match_method": "tournament+team+shirt_number",
+      "reference_date": "2022-11-20",
+      "age": 22,
+      "position": "ST",
+      "minutes": 516.8797166666667,
+      "appearances": 7,
+      "main_position_share": 0.7387058104395209,
+      "age_band": "20-23",
+      "metrics": [
+        {
+          "metric": "completed_passes",
+          "total": 93.0,
+          "per90": 16.193322605069014,
+          "percentile": 50.0,
+          "peer_count": 5,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "key_passes",
+          "total": 2.0,
+          "per90": 0.34824349688320455,
+          "percentile": 75.0,
+          "peer_count": 5,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "npxg",
+          "total": 1.908327433,
+          "per90": 0.33228130923303467,
+          "percentile": 50.0,
+          "peer_count": 5,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "shots",
+          "total": 11.0,
+          "per90": 1.915339232857625,
+          "percentile": 75.0,
+          "peer_count": 5,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "successful_dribbles",
+          "total": 0.0,
+          "per90": 0.0,
+          "percentile": 0.0,
+          "peer_count": 5,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "tackles_won",
+          "total": 4.0,
+          "per90": 0.6964869937664091,
+          "percentile": 25.0,
+          "peer_count": 5,
+          "evidence_status": "limited_sample"
+        }
+      ]
+    },
+    {
+      "player_id": 32975,
+      "name": "Diogo Meireles Costa",
+      "display_name": "Diogo Costa",
+      "team_id": 780,
+      "team": "Portugal",
+      "shirt_number": 22,
+      "birth_date": "1999-09-19",
+      "birth_source_name": "DIOGO COSTA",
+      "birth_source_url": "https://fdp.fifa.org/assetspublic/ce44/pdf/SquadLists-English.pdf",
+      "birth_source_sha256": "2a75fb43fb871564ef040c1e81f9260c85b6a9ea7fc3b7c68cd5723d6de7e874",
+      "birth_match_method": "tournament+team+shirt_number",
+      "reference_date": "2022-11-20",
+      "age": 23,
+      "position": "GK",
+      "minutes": 503.09388333333334,
+      "appearances": 5,
+      "main_position_share": 1.0,
+      "age_band": "20-23",
+      "metrics": [
+        {
+          "metric": "completed_passes",
+          "total": 111.0,
+          "per90": 19.85712872080569,
+          "percentile": null,
+          "peer_count": 1,
+          "evidence_status": "insufficient_peers"
+        },
+        {
+          "metric": "key_passes",
+          "total": 1.0,
+          "per90": 0.17889305153878998,
+          "percentile": null,
+          "peer_count": 1,
+          "evidence_status": "insufficient_peers"
+        },
+        {
+          "metric": "npxg",
+          "total": 0.0,
+          "per90": 0.0,
+          "percentile": null,
+          "peer_count": 1,
+          "evidence_status": "insufficient_peers"
+        },
+        {
+          "metric": "shots",
+          "total": 0.0,
+          "per90": 0.0,
+          "percentile": null,
+          "peer_count": 1,
+          "evidence_status": "insufficient_peers"
+        },
+        {
+          "metric": "successful_dribbles",
+          "total": 0.0,
+          "per90": 0.0,
+          "percentile": null,
+          "peer_count": 1,
+          "evidence_status": "insufficient_peers"
+        },
+        {
+          "metric": "tackles_won",
+          "total": 0.0,
+          "per90": 0.0,
+          "percentile": null,
+          "peer_count": 1,
+          "evidence_status": "insufficient_peers"
+        }
+      ]
+    },
+    {
+      "player_id": 20750,
+      "name": "Cody Mathès Gakpo",
+      "display_name": "Cody Gakpo",
+      "team_id": 941,
+      "team": "Netherlands",
+      "shirt_number": 8,
+      "birth_date": "1999-05-07",
+      "birth_source_name": "GAKPO Cody",
+      "birth_source_url": "https://fdp.fifa.org/assetspublic/ce44/pdf/SquadLists-English.pdf",
+      "birth_source_sha256": "2a75fb43fb871564ef040c1e81f9260c85b6a9ea7fc3b7c68cd5723d6de7e874",
+      "birth_match_method": "tournament+team+shirt_number",
+      "reference_date": "2022-11-20",
+      "age": 23,
+      "position": "ST",
+      "minutes": 490.4911166666667,
+      "appearances": 5,
+      "main_position_share": 0.5098081117133383,
+      "age_band": "20-23",
+      "metrics": [
+        {
+          "metric": "completed_passes",
+          "total": 98.0,
+          "per90": 17.981977043620937,
+          "percentile": 75.0,
+          "peer_count": 5,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "key_passes",
+          "total": 10.0,
+          "per90": 1.8348956166960142,
+          "percentile": 100.0,
+          "peer_count": 5,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "npxg",
+          "total": 0.562367031,
+          "per90": 0.10318848001562514,
+          "percentile": 25.0,
+          "peer_count": 5,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "shots",
+          "total": 5.0,
+          "per90": 0.9174478083480071,
+          "percentile": 0.0,
+          "peer_count": 5,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "successful_dribbles",
+          "total": 5.0,
+          "per90": 0.9174478083480071,
+          "percentile": 50.0,
+          "peer_count": 5,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "tackles_won",
+          "total": 5.0,
+          "per90": 0.9174478083480071,
+          "percentile": 50.0,
+          "peer_count": 5,
+          "evidence_status": "limited_sample"
+        }
+      ]
+    },
+    {
+      "player_id": 3943,
+      "name": "Declan Rice",
+      "display_name": "Declan Rice",
+      "team_id": 768,
+      "team": "England",
+      "shirt_number": 4,
+      "birth_date": "1999-01-14",
+      "birth_source_name": "RICE Declan",
+      "birth_source_url": "https://fdp.fifa.org/assetspublic/ce44/pdf/SquadLists-English.pdf",
+      "birth_source_sha256": "2a75fb43fb871564ef040c1e81f9260c85b6a9ea7fc3b7c68cd5723d6de7e874",
+      "birth_match_method": "tournament+team+shirt_number",
+      "reference_date": "2022-11-20",
+      "age": 23,
+      "position": "DM",
+      "minutes": 478.16908333333333,
+      "appearances": 5,
+      "main_position_share": 0.993447819800144,
+      "age_band": "20-23",
+      "metrics": [
+        {
+          "metric": "completed_passes",
+          "total": 306.0,
+          "per90": 57.59468974450983,
+          "percentile": 85.71428571428571,
+          "peer_count": 8,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "key_passes",
+          "total": 1.0,
+          "per90": 0.18821794034153538,
+          "percentile": 14.285714285714286,
+          "peer_count": 8,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "npxg",
+          "total": 0.0,
+          "per90": 0.0,
+          "percentile": 0.0,
+          "peer_count": 8,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "shots",
+          "total": 0.0,
+          "per90": 0.0,
+          "percentile": 0.0,
+          "peer_count": 8,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "successful_dribbles",
+          "total": 0.0,
+          "per90": 0.0,
+          "percentile": 0.0,
+          "peer_count": 8,
+          "evidence_status": "limited_sample"
+        },
+        {
+          "metric": "tackles_won",
+          "total": 4.0,
+          "per90": 0.7528717613661415,
+          "percentile": 14.285714285714286,
+          "peer_count": 8,
+          "evidence_status": "limited_sample"
+        }
+      ]
+    }
+  ]
+}

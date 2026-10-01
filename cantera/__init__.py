@@ -1,0 +1,1 @@
+"""Cantera IQ: auditable football analytics, stage one."""
